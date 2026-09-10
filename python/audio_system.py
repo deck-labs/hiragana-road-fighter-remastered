@@ -225,13 +225,14 @@ class AudioSystem:
 
         # Cruise volume scales smoothly with speed
         vol_factor = 0.28 + 0.34 * min(1.0, speed_kmh / 160.0)
-        self.target_engine_vol = eff_eng * vol_factor
             
-        # Turbo sound
-        if is_turbo and speed_kmh > 60.0:
-            trb_factor = 0.42 * min(1.0, (speed_kmh - 60.0) / 100.0)
+        # Turbo sound: aggressive throaty "vrooomm" boost roar
+        if is_turbo and speed_kmh > 15.0:
+            trb_factor = 0.85 * min(1.0, 0.40 + 0.60 * ((speed_kmh - 15.0) / 90.0))
             self.target_turbo_vol = eff_eng * trb_factor
+            self.target_engine_vol = eff_eng * max(vol_factor, 0.75)
         else:
+            self.target_engine_vol = eff_eng * vol_factor
             self.target_turbo_vol = 0.0
 
     def play_match(self):
