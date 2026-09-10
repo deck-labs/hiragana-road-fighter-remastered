@@ -77,10 +77,21 @@ class GameEngine:
         self.gamepad_buttons_down = set()
             
         # Mouse auto-hide & movement tracking
-        pygame.mouse.set_visible(False)
+        try:
+            self.invis_cursor = pygame.cursors.Cursor((8, 8), (0, 0), (0,)*8, (0,)*8)
+        except Exception:
+            self.invis_cursor = None
+        try:
+            self.default_cursor = pygame.cursors.Cursor(pygame.SYSTEM_CURSOR_ARROW)
+        except Exception:
+            self.default_cursor = None
+
+        self.mouse_visible = False
         self.mouse_idle_timer = 0.0
-        self.mouse_startup_grace_timer = 0.6  # Suppress initial window mapping / focus events
-        self.last_mouse_pos = pygame.mouse.get_pos()
+        self.mouse_startup_grace_timer = 1.0  # Suppress initial window mapping / focus events
+        self.idle_anchor_pos = pygame.mouse.get_pos()
+        self.last_moving_pos = self.idle_anchor_pos
+        self.hide_cursor()
         
         # Game State
         self.current_stage = start_stage
@@ -127,6 +138,36 @@ class GameEngine:
             if start_menu:
                 self.is_volume_menu_open = True
             self.audio.start_engine()
+
+    def hide_cursor(self):
+        """Completely suppress mouse cursor using both transparent bitmap cursor and SDL visibility."""
+        self.mouse_visible = False
+        self.mouse_idle_timer = 0.0
+        self.idle_anchor_pos = pygame.mouse.get_pos()
+        if self.invis_cursor is not None:
+            try:
+                pygame.mouse.set_cursor(self.invis_cursor)
+            except Exception:
+                pass
+        try:
+            pygame.mouse.set_visible(False)
+        except Exception:
+            pass
+
+    def show_cursor(self):
+        """Reveal mouse cursor using default arrow cursor and SDL visibility."""
+        self.mouse_visible = True
+        self.mouse_idle_timer = 2.0
+        self.last_moving_pos = pygame.mouse.get_pos()
+        if self.default_cursor is not None:
+            try:
+                pygame.mouse.set_cursor(self.default_cursor)
+            except Exception:
+                pass
+        try:
+            pygame.mouse.set_visible(True)
+        except Exception:
+            pass
 
     def check_quit_combo(self) -> bool:
         """Check if any connected controller has both SELECT and START pressed simultaneously."""
@@ -518,26 +559,42 @@ class GameEngine:
                 self.gamepad_buttons_down = {b for b in self.gamepad_buttons_down if b[0] != event.instance_id}
                 print("Gamepad detached")
 
-            # Mouse activity & 2-second countdown
+            # If user operates gamepad buttons, hats, or keyboard, immediately hide mouse cursor
+            elif event.type in (pygame.JOYBUTTONDOWN, pygame.JOYHATMOTION, pygame.KEYDOWN):
+                if self.mouse_visible:
+                    self.hide_cursor()
+            elif event.type == pygame.JOYAXISMOTION:
+                if abs(event.value) > 0.4 and self.mouse_visible:
+                    self.hide_cursor()
+            elif event.type in (pygame.ACTIVEEVENT, getattr(pygame, 'WINDOWFOCUSGAINED', -1), getattr(pygame, 'WINDOWENTER', -1)):
+                if not self.mouse_visible:
+                    self.hide_cursor()
+
+            # Mouse activity & auto-hide tracking
             if event.type == pygame.MOUSEMOTION:
                 mx, my = event.pos
-                if self.last_mouse_pos is not None:
-                    dist = math.hypot(mx - self.last_mouse_pos[0], my - self.last_mouse_pos[1])
+                if self.mouse_startup_grace_timer > 0.0:
+                    self.idle_anchor_pos = (mx, my)
+                elif not self.mouse_visible:
+                    # Require deliberate movement (>= 15px from idle anchor) to wake cursor
+                    if self.idle_anchor_pos is not None:
+                        dist = math.hypot(mx - self.idle_anchor_pos[0], my - self.idle_anchor_pos[1])
+                    else:
+                        dist = 20.0
+                    if dist >= 15.0:
+                        self.show_cursor()
                 else:
-                    dist = 10.0
-                self.last_mouse_pos = (mx, my)
-
-                # Ignore startup window mapping events and trackpad micro-jitter (< 3px)
-                if self.mouse_startup_grace_timer <= 0.0 and dist >= 3.0:
-                    if not pygame.mouse.get_visible():
-                        pygame.mouse.set_visible(True)
-                    self.mouse_idle_timer = 2.0
+                    # Cursor is already visible: check movement to reset 2-second countdown
+                    if self.last_moving_pos is not None:
+                        dist = math.hypot(mx - self.last_moving_pos[0], my - self.last_moving_pos[1])
+                    else:
+                        dist = 5.0
+                    if dist >= 2.0:
+                        self.mouse_idle_timer = 2.0
+                        self.last_moving_pos = (mx, my)
             elif event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP):
-                self.last_mouse_pos = event.pos
                 if self.mouse_startup_grace_timer <= 0.0:
-                    if not pygame.mouse.get_visible():
-                        pygame.mouse.set_visible(True)
-                    self.mouse_idle_timer = 2.0
+                    self.show_cursor()
 
             # Mouse clicks in menus
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -771,16 +828,15 @@ class GameEngine:
         # Mouse auto-hide countdown (hides initially and after 2 seconds idle)
         if self.mouse_startup_grace_timer > 0.0:
             self.mouse_startup_grace_timer = max(0.0, self.mouse_startup_grace_timer - delta)
-            if pygame.mouse.get_visible():
-                pygame.mouse.set_visible(False)
-        elif self.mouse_idle_timer > 0.0:
+            if self.mouse_visible:
+                self.hide_cursor()
+        elif self.mouse_visible:
             self.mouse_idle_timer -= delta
             if self.mouse_idle_timer <= 0.0:
-                self.mouse_idle_timer = 0.0
-                pygame.mouse.set_visible(False)
+                self.hide_cursor()
         else:
             if pygame.mouse.get_visible():
-                pygame.mouse.set_visible(False)
+                self.hide_cursor()
 
         if self.is_title_screen or self.is_volume_menu_open or self.is_paused or self.is_update_dialog_open:
             return

@@ -76,7 +76,12 @@ def main():
     actual_w, actual_h = screen.get_size()
     print(f"[Display] Active Screen Resolution: {actual_w}x{actual_h}")
 
-    # Immediately hide mouse cursor on startup
+    # Immediately hide mouse cursor on startup (both transparent bitmap cursor and SDL visibility)
+    try:
+        invis_cursor = pygame.cursors.Cursor((8, 8), (0, 0), (0,)*8, (0,)*8)
+        pygame.mouse.set_cursor(invis_cursor)
+    except Exception:
+        pass
     pygame.mouse.set_visible(False)
 
     stage_to_start = args.stage if args.stage is not None else 1
