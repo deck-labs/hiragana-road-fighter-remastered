@@ -6,6 +6,10 @@ __pycache__/
 build/
 dist/
 
+# Binaries & Bundles (published via GitHub Releases)
+*.AppImage
+*.AppDir
+
 # Unrelated workspace experiments
 street_fighter/
 run_sf2.sh
@@ -14,4 +18,3 @@ run_sf2.sh
 *.bmp
 /tmp/
 .DS_Store
-

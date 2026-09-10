@@ -1,81 +1,76 @@
-# Hiragana Road Fighter (ひらがな ロードファイター)
+# Hiragana Road Fighter: Remastered Edition (ひらがな ロードファイター リマスター)
 
 [![Language](https://img.shields.io/badge/Language-Python%203.13-blue.svg)](https://www.python.org/)
-[![Engine](https://img.shields.io/badge/Engine-Pygame%202.6-yellow.svg)](https://www.pygame.org/)
+[![Engine](https://img.shields.io/badge/Engine-Pygame%202.6%20%2F%20SDL2-yellow.svg)](https://www.pygame.org/)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20%2F%20SteamOS%20(Steam%20Deck)-orange.svg)](https://store.steampowered.com/steamdeck)
-[![Stages](https://img.shields.io/badge/Stages-10%20Courses%20(A%2C%20KA%2C%20SA%2C%20TA%2C%20NA%2C%20HA%2C%20MA%2C%20RA%2C%20YA%2C%20N%2FChamp)-brightgreen.svg)](#10-stages--hiragana-syllabus)
+[![Stages](https://img.shields.io/badge/Stages-10%20Courses%20(46%20Hiragana%20Characters)-brightgreen.svg)](#-10-stages--hiragana-syllabus)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
-[![Download AppImage](https://img.shields.io/badge/Download-Latest%20AppImage-00C853?style=flat&logo=appimage&logoColor=white)](https://github.com/deck-labs/hiragana-road-fighter/raw/main/Hiragana_Road_Fighter-x86_64.AppImage)
+[![Download AppImage](https://img.shields.io/badge/Download-Latest%20Remastered%20AppImage-00C853?style=flat&logo=appimage&logoColor=white)](https://github.com/deck-labs/hiragana-road-fighter-remastered/releases/download/v1.0.0/Hiragana_Road_Fighter_Remastered-x86_64.AppImage)
 
-A retro Japanese Hiragana learning arcade racer built in Python (Pygame), inspired by Konami's arcade classic *Road Fighter*. Players master reading and recognizing Hiragana characters at adrenaline-pumping speeds of up to 240 KM/H!
+The **Remastered Edition** of *Hiragana Road Fighter*, inspired by Konami's classic arcade vertical racer *Road Fighter*. Master recognizing and reading Japanese Hiragana characters at adrenaline-pumping speeds of up to 240 KM/H!
 
 <div align="center">
 
-<a href="https://github.com/deck-labs/hiragana-road-fighter/raw/main/Hiragana_Road_Fighter-x86_64.AppImage">
-  <img src="https://img.shields.io/badge/⬇%20DOWNLOAD%20LATEST%20APPIMAGE-v0.5.0%20(Linux%20%2F%20Steam%20Deck)-00C853?style=for-the-badge&logo=appimage&logoColor=white" height="46" alt="Download Latest AppImage">
+<a href="https://github.com/deck-labs/hiragana-road-fighter-remastered/releases/download/v1.0.0/Hiragana_Road_Fighter_Remastered-x86_64.AppImage">
+  <img src="https://img.shields.io/badge/⬇%20DOWNLOAD%20REMASTERED%20APPIMAGE-v1.0.0%20(Linux%20%2F%20Steam%20Deck)-00C853?style=for-the-badge&logo=appimage&logoColor=white" height="46" alt="Download Remastered AppImage">
 </a>
 
 <br>
-<sub><b>Standalone Linux Binary:</b> No installation required. Works directly with Steam / Steam Deck!</sub>
+<sub><b>Standalone Linux Binary:</b> No installation required. Runs directly on Steam Deck and Linux desktops!</sub>
 
 </div>
+
+---
+
+## ✨ What's New in the Remastered Edition
+
+1. **Blender 5.2 3D Low-Poly Vehicle Fleet**:
+   - High-fidelity 3D sports car rendered from authentic retro low-poly geometry with dual GT racing stripes, rear wing spoiler, and twin chrome exhaust pipes.
+   - 6 high-contrast traffic colorways (Blue, Cyan, Green, Orange, Purple, Yellow) with cleaned decals.
+   - **True Top-Down Orthographic Perspective**: Balanced front-to-rear arcade proportions showing the full hood, windshield, roof intercept plate, rear deck, and tires.
+   - 3D roadside scenery props: Japanese cedar trees, tropical palms, alpine pines, granite boulders, and checkered finish line arch.
+2. **Audacity DSP Studio Remastered Audio**:
+   - Restored and mastered 120 Hz arcade combustion rumble with warm harmonics, soft saturation, and verified click-free zero-crossing loops.
+   - High-RPM turbo forced-induction whine, sparkling Kana match chimes, heavy impact crashes, and fanfare melodies.
+3. **Anti-Aliased Sprite Downsampling**:
+   - Hardware-accelerated bilinear smoothscale filtering for high-resolution 3D models at all distances and speeds.
+4. **Dedicated Title Screen QUIT Option**:
+   - Fully accessible from the title screen menu via gamepad (`[A]`, `[START]`), keyboard (`[ENTER]`, `[ESC]`), mouse, and touchscreen.
+5. **Integrated In-Game Auto-Updater**:
+   - Check for updates directly from the title screen with atomic in-place binary replacement preserving Steam shortcuts.
 
 ---
 
 ## ⚡ Direct Download (Standalone AppImage)
 
-You do **not** need to install Python, dependencies, or compile code. You can download and launch the standalone Linux AppImage directly:
+You do **not** need to install Python, dependencies, or compile code:
 
 <div align="center">
 
-<a href="https://github.com/deck-labs/hiragana-road-fighter/raw/main/Hiragana_Road_Fighter-x86_64.AppImage">
-  <img src="https://img.shields.io/badge/⬇%20DOWNLOAD%20APPIMAGE-v0.5.0%20(Standalone%20x86__64)-00E676?style=for-the-badge&logo=linux&logoColor=black" height="48" alt="Download AppImage">
+<a href="https://github.com/deck-labs/hiragana-road-fighter-remastered/releases/download/v1.0.0/Hiragana_Road_Fighter_Remastered-x86_64.AppImage">
+  <img src="https://img.shields.io/badge/⬇%20DOWNLOAD%20APPIMAGE-v1.0.0%20(Standalone%20x86__64)-00E676?style=for-the-badge&logo=linux&logoColor=black" height="48" alt="Download AppImage">
 </a>
 
 <br>
-<sub><b>Filename:</b> <code>Hiragana_Road_Fighter-x86_64.AppImage</code> | <b>Size:</b> ~41 MB | <b>Architecture:</b> x86_64 (Linux / Steam Deck)</sub>
+<sub><b>Filename:</b> <code>Hiragana_Road_Fighter_Remastered-x86_64.AppImage</code> | <b>Size:</b> ~44 MB | <b>Architecture:</b> x86_64 (Linux / Steam Deck)</sub>
 
 </div>
 
 ### 🚀 One-Line Terminal Shortcut (Download & Run)
 
-Paste this single command into your terminal (Steam Deck Konsole, Arch, Ubuntu, Fedora) to download and launch immediately:
+Paste this command into your terminal (Steam Deck Konsole, Arch, Ubuntu, Fedora) to download and launch immediately:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/deck-labs/hiragana-road-fighter/main/download.sh | bash
+curl -sSL https://raw.githubusercontent.com/deck-labs/hiragana-road-fighter-remastered/main/download.sh | bash
 ```
 
-Or download manually:
+Or manual download:
 
 ```bash
-curl -L -o Hiragana_Road_Fighter-x86_64.AppImage https://raw.githubusercontent.com/deck-labs/hiragana-road-fighter/main/Hiragana_Road_Fighter-x86_64.AppImage
-chmod +x Hiragana_Road_Fighter-x86_64.AppImage
-./Hiragana_Road_Fighter-x86_64.AppImage
+curl -L -o Hiragana_Road_Fighter_Remastered-x86_64.AppImage https://github.com/deck-labs/hiragana-road-fighter-remastered/releases/download/v1.0.0/Hiragana_Road_Fighter_Remastered-x86_64.AppImage
+chmod +x Hiragana_Road_Fighter_Remastered-x86_64.AppImage
+./Hiragana_Road_Fighter_Remastered-x86_64.AppImage
 ```
-
----
-
-## 📸 Screenshots
-
-| Stage 1: Forest Highway (あいうえお) | Stage 2: Coastal Bridge (かきくけこ) |
-| :---: | :---: |
-| ![Stage 1](screenshots/hud_stage1.png) | ![Stage 2](screenshots/hud_stage2.png) |
-
-| Stage 3: Coastal Beach (さしすせそ) | Stage 4: Mountain Pass (たちつてと) |
-| :---: | :---: |
-| ![Stage 3](screenshots/hud_stage3.png) | ![Stage 4](screenshots/hud_stage4.png) |
-
-| Stage 5: Neon Metropolis (なにぬねの) | Stage 6: Volcano Caldera (はひふへほ) |
-| :---: | :---: |
-| ![Stage 5](screenshots/hud_stage5.png) | ![Stage 6](screenshots/hud_stage6.png) |
-
-| Stage 7: Glacier Tundra (まみむめも) | Stage 8: Sakura Boulevard (らりるれろ) |
-| :---: | :---: |
-| ![Stage 7](screenshots/hud_stage7.png) | ![Stage 8](screenshots/hud_stage8.png) |
-
-| Stage 9: Sunset Canyon (やゆよわを) | Stage 10: Fuji Speedway (んわれねるろ) |
-| :---: | :---: |
-| ![Stage 9](screenshots/hud_stage9.png) | ![Stage 10](screenshots/hud_stage10.png) |
 
 ---
 
@@ -94,7 +89,7 @@ All 10 stages feature an identical 36,000-meter course length with distinct envi
 | **07** | **Glacier Tundra** | `ま` `み` `む` `め` `も` | `ma`, `mi`, `mu`, `me`, `mo` |
 | **08** | **Sakura Boulevard** | `ら` `り` `る` `れ` `ろ` | `ra`, `ri`, `ru`, `re`, `ro` |
 | **09** | **Sunset Canyon** | `や` `ゆ` `よ` `わ` `を` | `ya`, `yu`, `yo`, `wa`, `wo` / `o` |
-| **10** | **Fuji Speedway** | `ん` `わ` `れ` `ね` `る` `ろ` | `n`, `wa`, `re`, `ne`, `ru`, `ro` (Championship Grand Finale) |
+| **10** | **Fuji Speedway** | `ん` `わ` `れ` `ね` `る` `ろ` | `n`, `wa`, `re`, `ne`, `ru`, `ro` (Grand Championship Finale) |
 
 ---
 
@@ -124,37 +119,23 @@ The game includes universal gamepad support (Steam Deck, Xbox, 8BitDo, PlayStati
 | **Brake / Slow** | `(X)` / `(Y)` / `LT` / `LB` | `Down` / `S` |
 | **Pause & Resume** | `SELECT` (`Back` / `View` / `Minus`) | `P` |
 | **Options / Audio Volume** | `START` (`Options` / `Plus` / `Menu`) | `ESC` / `Enter` |
+| **Title Screen QUIT** | Select QUIT and press `(A)` / `START` | Select QUIT and press `Enter` / `ESC` |
 | **Quick Quit to Desktop** | `SELECT + START` (Simultaneously) | Gamepad combo |
-
-### Quality of Life & Polish
-* **Auto-Resolution & Adaptive Aspect Ratio**: Automatically detects the maximum native resolution supported by your display hardware. On Steam Deck (1280x800) and 16:10 displays (1920x1200), runs in native 16:10 aspect ratio with **ZERO black bars** (no letterbox or pillarbox bars) and crisp 100% isotropic 2:3 scaling. Also natively supports 16:9 (1080p, 1440p, 4K UHD), 21:9 Ultrawide, and full stretch mode, toggleable on-the-fly in the in-game Options menu (`AUTO` vs `FULL (STRETCH)`). Mouse and touch coordinates automatically translate to virtual coordinates.
-* **In-Game Online System Updater**: Check for updates directly from the Title Screen. Safely updates the AppImage in-place without altering file paths or filenames, guaranteeing that Steam shortcuts, desktop launchers, and scripts never break.
-* **Complete Audio Mute on Pause**: All engine sound loops, turbo whoosh, SFX, and music are completely silenced while paused.
-* **Authentic 8-Bit NES Title Theme & Clean Harmonies**: Features a nostalgic 16-bar retro NES arcade title theme synthesized with authentic Ricoh 2A03 APU pulse, triangle, and noise channels, looping seamlessly at the title screen with warm retro chord harmonies and zero distracting laser chirps.
-* **Throaty Combustion Engine Roar & Smooth Sound Transitions**: Car engine audio models authentic 4-cylinder combustion pulses, camshaft chug modulation, and tuned exhaust rumble. Turbo boost features aerodynamic forced-induction rushing air without whistling artifacts. Includes real-time low-pass exponential volume smoothing and gentle envelope ducking recovery to completely eliminate abrupt pops or clicks.
-* **Idle Mouse Auto-Hide**: Mouse cursor auto-hides after 2 seconds of inactivity, with Steam Deck trackpad micro-jitter filtering.
-* **Pixel-Crisp Steering**: The player car remains strictly upright during lane shifts with zero sprite distortion. Smooth antialiased rotozoom is reserved exclusively for impact spinouts.
 
 ---
 
 ## 💻 Running from Source
 
-### Prerequisites
-- Python 3.10+
-- Pygame (`pip install pygame`)
-
-### Launching:
 ```bash
 # 1. Clone repository
-git clone https://github.com/deck-labs/hiragana-road-fighter.git
-cd hiragana-road-fighter
+git clone https://github.com/deck-labs/hiragana-road-fighter-remastered.git
+cd hiragana-road-fighter-remastered
 
 # 2. Install Pygame
 pip install pygame
 
 # 3. Launch game
-./run.sh
-# (Or: python3 python/main.py)
+python3 python/main.py
 ```
 
 ---
@@ -167,7 +148,7 @@ To package a standalone, dependency-free Linux AppImage:
 ./build_appimage.sh
 ```
 
-This compiles the Python codebase using PyInstaller, bundles all assets, generates a 256x256 icon, and packages a portable `x86_64` AppImage that runs on any modern Linux distribution without requiring Python or system libraries.
+This compiles the Python codebase using PyInstaller, bundles all assets, generates a 256x256 icon, and packages a portable `x86_64` AppImage that runs on any modern Linux distribution or Steam Deck without requiring Python or system libraries.
 
 ---
 

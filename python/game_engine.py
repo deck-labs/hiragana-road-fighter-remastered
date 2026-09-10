@@ -208,6 +208,13 @@ class GameEngine:
         self.player.y = self.player_screen_y
         self.player.speed_kmh = 0.0
 
+    def quit_game(self):
+        """Completely exit and close the application."""
+        self.running = False
+        self.audio.stop_all()
+        pygame.quit()
+        sys.exit(0)
+
     def pick_new_target_kana(self):
         pool = STAGE_KANA.get(self.current_stage, STAGE_KANA[1])
         available = [item for item in pool if item.get("kana") != self.current_target_kana.get("kana")]
@@ -288,7 +295,7 @@ class GameEngine:
             self.volume_selected_index = (self.volume_selected_index - 1 + max_opts) % max_opts
             self.audio.play_pause()
         elif self.is_title_screen:
-            self.title_menu_index = (self.title_menu_index - 1 + 4) % 4
+            self.title_menu_index = (self.title_menu_index - 1 + 5) % 5
             self.audio.play_pause()
 
     def menu_down(self):
@@ -299,7 +306,7 @@ class GameEngine:
             self.volume_selected_index = (self.volume_selected_index + 1) % max_opts
             self.audio.play_pause()
         elif self.is_title_screen:
-            self.title_menu_index = (self.title_menu_index + 1) % 4
+            self.title_menu_index = (self.title_menu_index + 1) % 5
             self.audio.play_pause()
 
     def menu_left(self):
@@ -466,6 +473,8 @@ class GameEngine:
                 self.toggle_volume_menu()
             elif self.title_menu_index == 3:
                 self.open_update_dialog()
+            elif self.title_menu_index == 4:
+                self.quit_game()
         elif self.is_stage_clear:
             if self.current_stage == TOTAL_STAGES:
                 self.return_to_title()
@@ -481,7 +490,7 @@ class GameEngine:
         if self.is_volume_menu_open:
             self.toggle_volume_menu()
         elif self.is_title_screen:
-            self.running = False
+            self.quit_game()
         elif self.is_stage_clear or self.is_game_over:
             self.return_to_title()
 
@@ -532,9 +541,9 @@ class GameEngine:
                         self.close_update_dialog()
                 elif self.is_title_screen and not self.is_volume_menu_open:
                     cx = self.virtual_width // 2
-                    title_y = int(self.virtual_height * 0.285)
-                    m_start = title_y + 205
-                    sp = 65
+                    title_y = int(self.virtual_height * 0.28)
+                    m_start = title_y + 210
+                    sp = 68
                     if (m_start - 25) <= my <= (m_start + 25) and (cx - 360) <= mx <= (cx + 360):
                         self.start_game_from_title()
                     elif (m_start + sp - 25) <= my <= (m_start + sp + 25) and (cx - 540) <= mx <= (cx + 540):
@@ -546,6 +555,8 @@ class GameEngine:
                         self.toggle_volume_menu()
                     elif (m_start + sp * 3 - 25) <= my <= (m_start + sp * 3 + 25) and (cx - 360) <= mx <= (cx + 360):
                         self.open_update_dialog()
+                    elif (m_start + sp * 4 - 25) <= my <= (m_start + sp * 4 + 25) and (cx - 360) <= mx <= (cx + 360):
+                        self.quit_game()
                 elif self.is_volume_menu_open:
                     cx = self.virtual_width // 2 if self.is_title_screen else 760
                     cy = self.virtual_height // 2

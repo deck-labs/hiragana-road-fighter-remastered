@@ -350,8 +350,8 @@ class HudRenderer:
         
         # 3. Menu Items with 200ms NES Blinking
         is_blink = (int(time.time() * 1000) // 200) % 2 == 0
-        menu_y_start = title_y + 215
-        spacing = 70
+        menu_y_start = title_y + 210
+        spacing = 68
         
         # Item 0: START
         is_sel_0 = (menu_index == 0)
@@ -395,6 +395,16 @@ class HudRenderer:
             surface.blit(arrow, (r3.left - 45, r3.top))
         surface.blit(txt_3, r3)
 
+        # Item 4: QUIT
+        is_sel_4 = (menu_index == 4)
+        col4 = COLOR_WHITE if (is_sel_4 and is_blink) else (COLOR_GOLD if is_sel_4 else (210, 230, 250))
+        txt_4 = self.font_menu.render("QUIT", True, col4)
+        r4 = txt_4.get_rect(center=(cx, menu_y_start + spacing * 4))
+        if is_sel_4 and is_blink:
+            arrow = self.font_menu.render("►", True, COLOR_GOLD)
+            surface.blit(arrow, (r4.left - 45, r4.top))
+        surface.blit(txt_4, r4)
+
         # Display Mode Badge (Bottom-Left)
         if display_info:
             txt_disp = self.font_caption.render(f"DISPLAY: {display_info}", True, (160, 210, 255))
@@ -402,7 +412,7 @@ class HudRenderer:
 
         # Footer
         txt_foot = self.font_caption.render("▲/▼ NAVIGATE   ◀/▶ ADJUST   [ENTER] / [A] / [START]: SELECT   [SELECT + START]: QUIT", True, (210, 235, 255))
-        surface.blit(txt_foot, txt_foot.get_rect(center=(cx, surface_h - 100)))
+        surface.blit(txt_foot, txt_foot.get_rect(center=(cx, surface_h - 90)))
 
     def render_volume_menu(self, surface: pygame.Surface, is_title_screen: bool, selected_idx: int,
                            master_vol: float, engine_vol: float, sfx_vol: float,

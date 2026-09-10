@@ -128,15 +128,20 @@ if [ ! -x "$TOOL" ]; then
     fi
 fi
 
-OUT_FILE="$DIR/Hiragana_Road_Fighter-x86_64.AppImage"
+OUT_FILE="$DIR/Hiragana_Road_Fighter_Remastered-x86_64.AppImage"
 rm -f "$OUT_FILE"
 
 echo "Running $TOOL on $APPDIR -> $OUT_FILE..."
 ARCH=x86_64 "$TOOL" "$APPDIR" "$OUT_FILE"
 chmod +x "$OUT_FILE"
 
+# Mirror to ~/Downloads
+cp -f "$OUT_FILE" /home/deck/Downloads/Hiragana_Road_Fighter_Remastered-x86_64.AppImage
+chmod +x /home/deck/Downloads/Hiragana_Road_Fighter_Remastered-x86_64.AppImage
+
 echo "========================================================="
 echo " AppImage successfully generated at:                      "
 echo "   $OUT_FILE                                             "
+echo "   /home/deck/Downloads/Hiragana_Road_Fighter_Remastered-x86_64.AppImage "
 echo " Size: $(du -h "$OUT_FILE" | cut -f1)                    "
 echo "========================================================="

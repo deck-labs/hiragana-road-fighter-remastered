@@ -67,16 +67,24 @@ class UpdateManager:
             return os.path.abspath(env_appimage)
 
         # Standard Steam Deck / Linux downloads location
+        remastered_downloads = os.path.expanduser("~/Downloads/Hiragana_Road_Fighter_Remastered-x86_64.AppImage")
+        if os.path.isfile(remastered_downloads):
+            return os.path.abspath(remastered_downloads)
+
         downloads_path = os.path.expanduser("~/Downloads/Hiragana_Road_Fighter-x86_64.AppImage")
         if os.path.isfile(downloads_path):
             return os.path.abspath(downloads_path)
 
         # Local workspace copy fallback
+        local_remastered = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Hiragana_Road_Fighter_Remastered-x86_64.AppImage"))
+        if os.path.isfile(local_remastered):
+            return local_remastered
+
         local_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Hiragana_Road_Fighter-x86_64.AppImage"))
         if os.path.isfile(local_path):
             return local_path
 
-        return downloads_path
+        return remastered_downloads
 
     def check_for_updates(self):
         """Start asynchronous update check."""
@@ -156,7 +164,7 @@ class UpdateManager:
                         "name": rel.get("name", f"Release {tag}"),
                         "changelog": rel.get("body", "Updated release on GitHub."),
                         "download_url": d_url,
-                        "fallback_raw_url": f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/Hiragana_Road_Fighter-x86_64.AppImage"
+                        "fallback_raw_url": f"https://github.com/{GITHUB_REPO}/releases/download/v{tag}/Hiragana_Road_Fighter_Remastered-x86_64.AppImage"
                     }
         except Exception:
             pass

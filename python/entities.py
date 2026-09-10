@@ -34,7 +34,10 @@ class PlayerCar:
         spr_path = get_asset_path("sprites/player_car.png")
         try:
             raw = pygame.image.load(spr_path).convert_alpha()
-            self.sprite = pygame.transform.scale(raw, (int(self.WIDTH), int(self.HEIGHT)))
+            try:
+                self.sprite = pygame.transform.smoothscale(raw, (int(self.WIDTH), int(self.HEIGHT)))
+            except Exception:
+                self.sprite = pygame.transform.scale(raw, (int(self.WIDTH), int(self.HEIGHT)))
         except Exception as e:
             print(f"Warning: Player sprite load failed: {e}")
             self.sprite = pygame.Surface((int(self.WIDTH), int(self.HEIGHT)), pygame.SRCALPHA)
@@ -218,7 +221,10 @@ class TrafficCar:
             path = get_asset_path(f"sprites/traffic_{color}.png")
             try:
                 raw = pygame.image.load(path).convert_alpha()
-                cls._textures[color] = pygame.transform.scale(raw, (int(cls.WIDTH), int(cls.HEIGHT)))
+                try:
+                    cls._textures[color] = pygame.transform.smoothscale(raw, (int(cls.WIDTH), int(cls.HEIGHT)))
+                except Exception:
+                    cls._textures[color] = pygame.transform.scale(raw, (int(cls.WIDTH), int(cls.HEIGHT)))
             except Exception as e:
                 print(f"Warning: Traffic sprite {color} load failed: {e}")
                 s = pygame.Surface((int(cls.WIDTH), int(cls.HEIGHT)), pygame.SRCALPHA)
