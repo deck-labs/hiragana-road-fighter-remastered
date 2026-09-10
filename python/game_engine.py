@@ -4,6 +4,7 @@ Main arcade game loop, event management, physics, collision, and state transitio
 """
 
 import sys
+import math
 import random
 import pygame
 from game_config import (
@@ -75,9 +76,11 @@ class GameEngine:
         self.stick_y_released = True
         self.gamepad_buttons_down = set()
             
-        # Mouse auto-hide
+        # Mouse auto-hide & movement tracking
         pygame.mouse.set_visible(False)
         self.mouse_idle_timer = 0.0
+        self.mouse_startup_grace_timer = 0.6  # Suppress initial window mapping / focus events
+        self.last_mouse_pos = pygame.mouse.get_pos()
         
         # Game State
         self.current_stage = start_stage
@@ -517,16 +520,24 @@ class GameEngine:
 
             # Mouse activity & 2-second countdown
             if event.type == pygame.MOUSEMOTION:
-                dx, dy = event.rel
-                # Filter out zero delta and micro-jitter from trackpads
-                if abs(dx) >= 2 or abs(dy) >= 2:
+                mx, my = event.pos
+                if self.last_mouse_pos is not None:
+                    dist = math.hypot(mx - self.last_mouse_pos[0], my - self.last_mouse_pos[1])
+                else:
+                    dist = 10.0
+                self.last_mouse_pos = (mx, my)
+
+                # Ignore startup window mapping events and trackpad micro-jitter (< 3px)
+                if self.mouse_startup_grace_timer <= 0.0 and dist >= 3.0:
                     if not pygame.mouse.get_visible():
                         pygame.mouse.set_visible(True)
                     self.mouse_idle_timer = 2.0
             elif event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP):
-                if not pygame.mouse.get_visible():
-                    pygame.mouse.set_visible(True)
-                self.mouse_idle_timer = 2.0
+                self.last_mouse_pos = event.pos
+                if self.mouse_startup_grace_timer <= 0.0:
+                    if not pygame.mouse.get_visible():
+                        pygame.mouse.set_visible(True)
+                    self.mouse_idle_timer = 2.0
 
             # Mouse clicks in menus
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -757,12 +768,19 @@ class GameEngine:
 
         self.audio.update(delta)
         
-        # Mouse auto-hide countdown (hides after 2 seconds idle)
-        if pygame.mouse.get_visible():
+        # Mouse auto-hide countdown (hides initially and after 2 seconds idle)
+        if self.mouse_startup_grace_timer > 0.0:
+            self.mouse_startup_grace_timer = max(0.0, self.mouse_startup_grace_timer - delta)
+            if pygame.mouse.get_visible():
+                pygame.mouse.set_visible(False)
+        elif self.mouse_idle_timer > 0.0:
             self.mouse_idle_timer -= delta
             if self.mouse_idle_timer <= 0.0:
-                pygame.mouse.set_visible(False)
                 self.mouse_idle_timer = 0.0
+                pygame.mouse.set_visible(False)
+        else:
+            if pygame.mouse.get_visible():
+                pygame.mouse.set_visible(False)
 
         if self.is_title_screen or self.is_volume_menu_open or self.is_paused or self.is_update_dialog_open:
             return

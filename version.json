@@ -1,10 +1,10 @@
 {
-  "version": "1.0.0",
-  "tag_name": "v1.0.0",
-  "name": "Hiragana Road Fighter: Remastered Edition v1.0.0",
+  "version": "1.0.1",
+  "tag_name": "v1.0.1",
+  "name": "Hiragana Road Fighter: Remastered Edition v1.0.1",
   "release_date": "2026-09-10",
   "appimage_filename": "Hiragana_Road_Fighter_Remastered-x86_64.AppImage",
-  "download_url": "https://github.com/deck-labs/hiragana-road-fighter-remastered/releases/download/v1.0.0/Hiragana_Road_Fighter_Remastered-x86_64.AppImage",
-  "fallback_raw_url": "https://github.com/deck-labs/hiragana-road-fighter-remastered/releases/download/v1.0.0/Hiragana_Road_Fighter_Remastered-x86_64.AppImage",
-  "changelog": "Hiragana Road Fighter: Remastered Edition v1.0.0! Features 3D lowpoly vehicle models rendered in Blender 5.2 from true top-down orthographic perspective, 6 vibrant traffic colorways, studio-mastered audio suite with punchy arcade engine combustion rumble via Audacity DSP, bilinear anti-aliased sprite scaling, all 10 complete stages (46 Hiragana characters), Steam Deck OLED 16:10 borderless display support, and dedicated title screen QUIT option."
+  "download_url": "https://github.com/deck-labs/hiragana-road-fighter-remastered/releases/download/v1.0.1/Hiragana_Road_Fighter_Remastered-x86_64.AppImage",
+  "fallback_raw_url": "https://github.com/deck-labs/hiragana-road-fighter-remastered/releases/download/v1.0.1/Hiragana_Road_Fighter_Remastered-x86_64.AppImage",
+  "changelog": "Hiragana Road Fighter: Remastered Edition v1.0.1! Features robust mouse cursor auto-hide (hidden on game startup, reveals on intentional mouse motion, cleanly hides after 2 seconds of inactivity with trackpad micro-jitter filtering), throaty 'VROOOOM' combustion turbo boost roar, 3D lowpoly vehicle models rendered from true top-down orthographic perspective, 10 complete stages, and title screen quit option."
 }

@@ -76,6 +76,9 @@ def main():
     actual_w, actual_h = screen.get_size()
     print(f"[Display] Active Screen Resolution: {actual_w}x{actual_h}")
 
+    # Immediately hide mouse cursor on startup
+    pygame.mouse.set_visible(False)
+
     stage_to_start = args.stage if args.stage is not None else 1
     skip_title = not args.title and (args.stage is not None or args.trackdist > 0.0 or args.pause or args.stageclear)
 
