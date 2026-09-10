@@ -1,11 +1,11 @@
 {
-  "version": "1.0.2",
-  "tag_name": "v1.0.2",
-  "name": "Hiragana Road Fighter: Remastered Edition v1.0.2",
-  "release_date": "2026-09-10",
+  "version": "1.0.3",
+  "tag_name": "v1.0.3",
+  "name": "Hiragana Road Fighter: Remastered Edition v1.0.3",
+  "release_date": "2026-09-11",
   "appimage_filename": "Hiragana_Road_Fighter_Remastered-x86_64.AppImage",
-  "download_url": "https://github.com/deck-labs/hiragana-road-fighter-remastered/releases/download/v1.0.2/Hiragana_Road_Fighter_Remastered-x86_64.AppImage",
-  "fallback_raw_url": "https://github.com/deck-labs/hiragana-road-fighter-remastered/releases/download/v1.0.2/Hiragana_Road_Fighter_Remastered-x86_64.AppImage",
-  "changelog": "Hiragana Road Fighter: Remastered Edition v1.0.2! Enhanced mouse cursor management: completely suppresses cursor on Linux/X11/Wayland/SteamOS using hardware transparent blank cursor bitmap and SDL visibility; adds 15px idle anchor jitter filtering for Steam Deck trackpads and gyro; adds instant cursor auto-hide upon any controller/gamepad button or stick input; cleanly auto-hides after 2 seconds idle."
+  "download_url": "https://github.com/deck-labs/hiragana-road-fighter-remastered/releases/download/v1.0.3/Hiragana_Road_Fighter_Remastered-x86_64.AppImage",
+  "fallback_raw_url": "https://github.com/deck-labs/hiragana-road-fighter-remastered/releases/download/v1.0.3/Hiragana_Road_Fighter_Remastered-x86_64.AppImage",
+  "changelog": "Hiragana Road Fighter: Remastered Edition v1.0.3! Features dynamic 3D drop shadows across all background scenery and vehicles: deciduous trees with dual-layer soft penumbra/umbra, radiating starburst shadows for beach palms, tiered conical shadows for alpine and snow pines, dense contact shadows for boulders, spires, and lanterns, and suspension drop shadows for player and traffic vehicles."
 }
 

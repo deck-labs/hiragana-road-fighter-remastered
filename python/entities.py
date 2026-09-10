@@ -44,6 +44,10 @@ class PlayerCar:
             pygame.draw.rect(self.sprite, (220, 40, 40), (0, 0, int(self.WIDTH), int(self.HEIGHT)), border_radius=8)
 
         self.composite_sprite = self._build_composite_sprite()
+        # Precomputed vehicle chassis drop shadow (ground contact on asphalt)
+        self.shadow_surf = pygame.Surface((int(self.WIDTH + 14), int(self.HEIGHT + 14)), pygame.SRCALPHA)
+        pygame.draw.rect(self.shadow_surf, (0, 0, 0, 65), (0, 0, int(self.WIDTH + 8), int(self.HEIGHT + 8)), border_radius=16)
+        pygame.draw.rect(self.shadow_surf, (0, 0, 0, 105), (3, 3, int(self.WIDTH + 2), int(self.HEIGHT + 2)), border_radius=14)
 
     def _build_composite_sprite(self) -> pygame.Surface:
         """High-contrast illuminated racing roof decal with pearl-white backing and crimson glyph."""
@@ -148,7 +152,10 @@ class PlayerCar:
                     (fl_x + fl_w * 0.5, fl_y + fl_h * 0.6)
                 ])
                 
-        # 2. Car Body with High-Contrast Roof Decal (stays 100% crisp upright during steering, smooth antialiased rotozoom only on crash wobble)
+        # 2. Car Body with High-Contrast Roof Decal & 3D Ground Drop Shadow
+        # Ground chassis drop shadow (offset down-right to match sun angle)
+        surface.blit(self.shadow_surf, (int(round(self.x - self.WIDTH * 0.5 + 5)), int(round(self.y - self.HEIGHT * 0.5 + 7))))
+
         surf_to_draw = self.composite_sprite
         if abs(self.rotation) > 0.005:
             deg = -math.degrees(self.rotation)
@@ -214,6 +221,10 @@ class TrafficCar:
         
         raw_sprite = self._get_texture(color)
         self.sprite = self._build_traffic_sprite(raw_sprite, romaji)
+        # Precomputed vehicle chassis drop shadow (ground contact on asphalt)
+        self.shadow_surf = pygame.Surface((int(self.WIDTH + 14), int(self.HEIGHT + 14)), pygame.SRCALPHA)
+        pygame.draw.rect(self.shadow_surf, (0, 0, 0, 65), (0, 0, int(self.WIDTH + 8), int(self.HEIGHT + 8)), border_radius=16)
+        pygame.draw.rect(self.shadow_surf, (0, 0, 0, 105), (3, 3, int(self.WIDTH + 2), int(self.HEIGHT + 2)), border_radius=14)
 
     @classmethod
     def _get_texture(cls, color: str) -> pygame.Surface:
@@ -381,7 +392,10 @@ class TrafficCar:
             rect = scaled.get_rect(center=(int(round(self.x)), int(round(self.y))))
             surface.blit(scaled, rect)
             return
-            
+
+        # Ground chassis drop shadow (offset down-right to match sun angle)
+        surface.blit(self.shadow_surf, (int(round(self.x - self.WIDTH * 0.5 + 5)), int(round(self.y - self.HEIGHT * 0.5 + 7))))
+
         surf_to_draw = self.sprite
         if self.wobble_timer > 0.0:
             angle = math.sin(self.wobble_timer * 40.0) * 15.0

@@ -21,7 +21,7 @@ ROAD_WIDTH = GAME_W - (ROAD_MARGIN * 2.0)  # 640.0 px wide 4-lane highway
 PLAYER_SCREEN_Y = 840.0
 
 # Version & Release Metadata
-GAME_VERSION = "1.0.2"
+GAME_VERSION = "1.0.3"
 GITHUB_REPO = "deck-labs/hiragana-road-fighter-remastered"
 VERSION_CHECK_URL = "https://raw.githubusercontent.com/deck-labs/hiragana-road-fighter-remastered/main/version.json"
 RELEASES_API_URL = "https://api.github.com/repos/deck-labs/hiragana-road-fighter-remastered/releases/latest"

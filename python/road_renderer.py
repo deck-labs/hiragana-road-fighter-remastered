@@ -74,6 +74,16 @@ class RoadRenderer:
                 s.fill((100, 100, 100, 255))
                 return s
 
+        def load_cropped(subpath):
+            img = load_img(subpath)
+            if img:
+                bbox = img.get_bounding_rect()
+                if bbox.width > 0 and bbox.height > 0:
+                    cropped = pygame.Surface(bbox.size, pygame.SRCALPHA)
+                    cropped.blit(img, (0, 0), bbox)
+                    return cropped
+            return img
+
         self.tex_asphalt = load_img("textures/asphalt.png")
         self.tex_grass = load_img("textures/grass.png")
         self.tex_concrete = load_img("textures/concrete.png")
@@ -81,15 +91,94 @@ class RoadRenderer:
         self.tex_sand = load_img("textures/sand.png")
         self.tex_rock_ground = load_img("textures/rock_ground.png")
         
-        self.tex_tree = load_img("sprites/tree.png")
-        self.tex_palm_tree = load_img("sprites/palm_tree.png")
-        self.tex_pine_tree = load_img("sprites/pine_tree.png")
-        self.tex_boulder = load_img("sprites/boulder.png")
+        self.tex_tree = load_cropped("sprites/tree.png")
+        self.tex_palm_tree = load_cropped("sprites/palm_tree.png")
+        self.tex_pine_tree = load_cropped("sprites/pine_tree.png")
+        self.tex_boulder = load_cropped("sprites/boulder.png")
         self.tex_finish_banner = load_img("sprites/finish_banner.png")
         try:
             self.font_gantry = pygame.font.Font(get_asset_path("fonts/DejaVuSans-Bold.ttf"), 14)
         except Exception:
             self.font_gantry = pygame.font.Font(None, 16)
+
+        # Precompute 3D drop shadow surfaces & pre-scale sprites
+        # 1. Stage 1 Deciduous Tree (72x94)
+        self.tree_w, self.tree_h = 72, 94
+        if self.tex_tree:
+            self.sprite_tree = pygame.transform.smoothscale(self.tex_tree, (self.tree_w, self.tree_h))
+        else:
+            self.sprite_tree = None
+
+        sh_tw = self.tree_w + 40
+        sh_th = int(self.tree_h * 0.6) + 30
+        self.shadow_tree = pygame.Surface((sh_tw, sh_th), pygame.SRCALPHA)
+        # Ground contact ellipse at trunk base
+        pygame.draw.ellipse(self.shadow_tree, (0, 0, 0, 130), (12, 8, 30, 14))
+        # Angled trunk cast shadow connecting trunk to canopy
+        pygame.draw.line(self.shadow_tree, (0, 0, 0, 95), (27, 14), (45, 28), 6)
+        # Soft outer canopy penumbra
+        pygame.draw.ellipse(self.shadow_tree, (0, 0, 0, 50), (22, 14, 60, 38))
+        # Core inner canopy umbra
+        pygame.draw.ellipse(self.shadow_tree, (0, 0, 0, 95), (26, 18, 52, 30))
+
+        # 2. Stage 3 Tropical Palm Tree (76x82)
+        self.palm_w, self.palm_h = 76, 82
+        if self.tex_palm_tree:
+            self.sprite_palm = pygame.transform.smoothscale(self.tex_palm_tree, (self.palm_w, self.palm_h))
+        else:
+            self.sprite_palm = None
+
+        sh_pw = self.palm_w + 35
+        sh_ph = int(self.palm_h * 0.6) + 35
+        self.shadow_palm = pygame.Surface((sh_pw, sh_ph), pygame.SRCALPHA)
+        # Trunk base contact ellipse
+        pygame.draw.ellipse(self.shadow_palm, (0, 0, 0, 135), (10, 8, 24, 12))
+        # Long curving trunk cast shadow on beach sand
+        pygame.draw.line(self.shadow_palm, (0, 0, 0, 90), (22, 14), (44, 30), 5)
+        # Radiating starburst palm frond canopy shadow
+        cx_f, cy_f = 46, 32
+        pygame.draw.ellipse(self.shadow_palm, (0, 0, 0, 45), (16, 14, 60, 36))
+        for i in range(7):
+            ang = i * (math.pi / 3.5)
+            ex = cx_f + math.cos(ang) * 26
+            ey = cy_f + math.sin(ang) * 16
+            pygame.draw.line(self.shadow_palm, (0, 0, 0, 90), (cx_f, cy_f), (int(ex), int(ey)), 6)
+        pygame.draw.circle(self.shadow_palm, (0, 0, 0, 105), (cx_f, cy_f), 12)
+
+        # 3. Stage 4/6/7 Alpine / Scorched / Snowy Pine Tree (54x76)
+        self.pine_w, self.pine_h = 54, 76
+        if self.tex_pine_tree:
+            self.sprite_pine = pygame.transform.smoothscale(self.tex_pine_tree, (self.pine_w, self.pine_h))
+        else:
+            self.sprite_pine = None
+
+        sh_pnw = self.pine_w + 24
+        sh_pnh = int(self.pine_h * 0.6) + 20
+        self.shadow_pine = pygame.Surface((sh_pnw, sh_pnh), pygame.SRCALPHA)
+        # Trunk contact ellipse
+        pygame.draw.ellipse(self.shadow_pine, (0, 0, 0, 140), (8, 14, 22, 10))
+        # Outer soft penumbra
+        pygame.draw.ellipse(self.shadow_pine, (0, 0, 0, 40), (12, 4, 52, 36))
+        # Tiered conical foliage shadow
+        pygame.draw.ellipse(self.shadow_pine, (0, 0, 0, 95), (14, 14, 38, 22))
+        pygame.draw.ellipse(self.shadow_pine, (0, 0, 0, 90), (24, 8, 28, 18))
+        pygame.draw.ellipse(self.shadow_pine, (0, 0, 0, 85), (34, 2, 20, 14))
+        pygame.draw.line(self.shadow_pine, (0, 0, 0, 110), (19, 20), (30, 16), 4)
+
+        # 4. Stage 4/6/7 Canyon & Basalt Boulders (58x42)
+        self.boulder_w, self.boulder_h = 58, 42
+        if self.tex_boulder:
+            self.sprite_boulder = pygame.transform.smoothscale(self.tex_boulder, (self.boulder_w, self.boulder_h))
+        else:
+            self.sprite_boulder = None
+
+        sh_bw = self.boulder_w + 20
+        sh_bh = self.boulder_h + 12
+        self.shadow_boulder = pygame.Surface((sh_bw, sh_bh), pygame.SRCALPHA)
+        # Outer ambient penumbra offset down-right (+10, +6)
+        pygame.draw.ellipse(self.shadow_boulder, (0, 0, 0, 55), (10, 8, self.boulder_w + 6, int(self.boulder_h * 0.65)))
+        # Core contact shadow directly beneath boulder
+        pygame.draw.ellipse(self.shadow_boulder, (0, 0, 0, 145), (4, 6, self.boulder_w, int(self.boulder_h * 0.55)))
 
     def _generate_scenery(self):
         rng = random.Random(12345)
@@ -899,11 +988,14 @@ class RoadRenderer:
             pygame.draw.rect(surface, curb_col, (road_left - 8, y, 8, slice_h))
             pygame.draw.rect(surface, curb_col, (road_left + road_w, y, 8, slice_h))
             
-        # Trees
+        # Trees with 3D Drop Shadows
         for tx, ty in self.stage1_trees:
             scr_y = ply_y - (ty - self.track_distance)
-            if -120 <= scr_y <= scr_h + 120 and self.tex_tree:
-                surface.blit(pygame.transform.scale(self.tex_tree, (72, 90)), (tx - 36, scr_y - 90))
+            if -120 <= scr_y <= scr_h + 120 and self.sprite_tree:
+                # 3D Drop Shadow on grass (anchored at trunk base)
+                surface.blit(self.shadow_tree, (tx - 24, scr_y - 14))
+                # 3D Tree sprite
+                surface.blit(self.sprite_tree, (tx - self.tree_w // 2, scr_y - self.tree_h))
 
     def _render_stage2(self, surface: pygame.Surface):
         slice_h = 6
@@ -1059,11 +1151,14 @@ class RoadRenderer:
             pygame.draw.rect(surface, curb_col, (r_left - 8, y, 8, slice_h))
             pygame.draw.rect(surface, curb_col, (r_right, y, 8, slice_h))
             
-        # Palm Trees
+        # Palm Trees with 3D Drop Shadows
         for px, py in self.stage3_palms:
             scr_y = ply_y - (py - self.track_distance)
-            if -120 <= scr_y <= scr_h + 120 and self.tex_palm_tree:
-                surface.blit(pygame.transform.scale(self.tex_palm_tree, (72, 90)), (px - 36, scr_y - 90))
+            if -120 <= scr_y <= scr_h + 120 and self.sprite_palm:
+                # 3D Drop Shadow on beach sand
+                surface.blit(self.shadow_palm, (px - 22, scr_y - 14))
+                # 3D Palm tree sprite
+                surface.blit(self.sprite_palm, (px - self.palm_w // 2, scr_y - self.palm_h))
 
     def _render_stage4(self, surface: pygame.Surface):
         scr_h = self.screen_height
@@ -1129,16 +1224,22 @@ class RoadRenderer:
                 pygame.draw.rect(surface, (191, 199, 209), (r_left - 11, y, 3, slice_h))
                 pygame.draw.rect(surface, (191, 199, 209), (r_right + 8, y, 3, slice_h))
                 
-        # Scenery: Pines & Boulders
+        # Scenery: Pines & Boulders with 3D Drop Shadows
         for item in self.stage4_scenery:
             px, py = item["pos"]
             is_pine = item["is_pine"]
             scr_y = ply_y - (py - self.track_distance)
             if -100 <= scr_y <= scr_h + 100:
-                if is_pine and self.tex_pine_tree:
-                    surface.blit(pygame.transform.scale(self.tex_pine_tree, (48, 64)), (px - 24, scr_y - 64))
-                elif not is_pine and self.tex_boulder:
-                    surface.blit(pygame.transform.scale(self.tex_boulder, (48, 36)), (px - 24, scr_y - 36))
+                if is_pine and self.sprite_pine:
+                    # Tiered conical foliage shadow on rocky ground
+                    surface.blit(self.shadow_pine, (px - 19, scr_y - 20))
+                    # 3D Pine tree sprite
+                    surface.blit(self.sprite_pine, (px - self.pine_w // 2, scr_y - self.pine_h))
+                elif not is_pine and self.sprite_boulder:
+                    # Ground contact + ambient penumbra shadow
+                    surface.blit(self.shadow_boulder, (px - self.boulder_w // 2 - 4, scr_y - int(self.boulder_h * 0.40)))
+                    # 3D Boulder sprite
+                    surface.blit(self.sprite_boulder, (px - self.boulder_w // 2, scr_y - self.boulder_h))
 
     def _render_stage5(self, surface: pygame.Surface):
         scr_h = self.screen_height
@@ -1227,6 +1328,9 @@ class RoadRenderer:
                 
                 # Left Lamp Post
                 lp_lx = r_l - 22.0
+                # 3D Drop Shadow on concrete shoulder
+                pygame.draw.line(surface, (0, 0, 0, 75), (lp_lx + 2, scr_y), (lp_lx + 24, scr_y + 16), 3)
+                pygame.draw.ellipse(surface, (0, 0, 0, 90), (lp_lx + 18, scr_y + 12, 12, 7))
                 pygame.draw.rect(surface, (140, 150, 165), (lp_lx, scr_y - 45, 4, 45))
                 pygame.draw.rect(surface, (170, 180, 195), (lp_lx, scr_y - 45, 16, 4)) # Arm pointing right
                 pygame.draw.rect(surface, (255, 250, 210), (lp_lx + 12, scr_y - 43, 6, 5)) # Lamp head
@@ -1235,6 +1339,9 @@ class RoadRenderer:
                 
                 # Right Lamp Post
                 lp_rx = r_r + 22.0
+                # 3D Drop Shadow on concrete shoulder
+                pygame.draw.line(surface, (0, 0, 0, 75), (lp_rx - 2, scr_y), (lp_rx + 20, scr_y + 16), 3)
+                pygame.draw.ellipse(surface, (0, 0, 0, 90), (lp_rx + 14, scr_y + 12, 12, 7))
                 pygame.draw.rect(surface, (140, 150, 165), (lp_rx - 4, scr_y - 45, 4, 45))
                 pygame.draw.rect(surface, (170, 180, 195), (lp_rx - 16, scr_y - 45, 16, 4)) # Arm pointing left
                 pygame.draw.rect(surface, (255, 250, 210), (lp_rx - 18, scr_y - 43, 6, 5)) # Lamp head
@@ -1248,6 +1355,10 @@ class RoadRenderer:
                 r_l, r_r = self.get_road_edges(5, gy)
                 gw = (r_r - r_l) + 50.0
                 gx = r_l - 25.0
+                
+                # 3D Pillar Base Shadows
+                pygame.draw.ellipse(surface, (0, 0, 0, 110), (gx - 2, scr_y - 4, 14, 8))
+                pygame.draw.ellipse(surface, (0, 0, 0, 110), (gx + gw - 10, scr_y - 4, 14, 8))
                 
                 # Steel Truss Arch
                 pygame.draw.rect(surface, (85, 95, 110), (gx, scr_y - 65, gw, 10))
@@ -1296,18 +1407,20 @@ class RoadRenderer:
                 pygame.draw.circle(surface, (255, 95, 20), (int(vx), int(scr_y)), int(vr * 0.7))
                 pygame.draw.circle(surface, (255, 200, 50), (int(vx), int(scr_y)), int(vr * 0.4 * (0.8 + pulse * 0.4)))
                 
-        # 4. Scorched Trees & Basalt Crags
+        # 4. Scorched Trees & Basalt Crags with 3D Drop Shadows
         for item in self.stage6_scenery:
             px, py = item["pos"]
             is_pine = item["is_pine"]
             scr_y = ply_y - (py - self.track_distance)
             if -100 <= scr_y <= scr_h + 100:
-                if is_pine and self.tex_pine_tree:
-                    pine_surf = pygame.transform.scale(self.tex_pine_tree, (48, 64))
-                    surface.blit(pine_surf, (px - 24, scr_y - 64))
-                elif not is_pine and self.tex_boulder:
-                    boulder_surf = pygame.transform.scale(self.tex_boulder, (52, 40))
-                    surface.blit(boulder_surf, (px - 26, scr_y - 40))
+                if is_pine and self.sprite_pine:
+                    # Conical shadow on volcanic basalt
+                    surface.blit(self.shadow_pine, (px - 19, scr_y - 20))
+                    surface.blit(self.sprite_pine, (px - self.pine_w // 2, scr_y - self.pine_h))
+                elif not is_pine and self.sprite_boulder:
+                    # Heavy basalt rock contact + ambient penumbra
+                    surface.blit(self.shadow_boulder, (px - self.boulder_w // 2 - 4, scr_y - int(self.boulder_h * 0.40)))
+                    surface.blit(self.sprite_boulder, (px - self.boulder_w // 2, scr_y - self.boulder_h))
                     
         # 5. Slices: Roadway, Asphalt, Fiery Curbs, Road Markings
         slice_h = 6
@@ -1378,6 +1491,15 @@ class RoadRenderer:
                     (cx, scr_y),
                     (cx - cw * 0.5, scr_y - ch * 0.3)
                 ]
+                # 3D Ice Crystal Drop Shadow on snow (cool blue-tinted shadow cast down-right)
+                pygame.draw.ellipse(surface, (15, 30, 60, 110), (int(cx - cw * 0.4), int(scr_y - 4), int(cw * 0.8), 8))
+                pygame.draw.polygon(surface, (15, 30, 60, 60), [
+                    (cx - cw * 0.3, scr_y),
+                    (cx + cw * 0.3, scr_y),
+                    (cx + cw * 0.8, scr_y + ch * 0.35),
+                    (cx + cw * 0.5, scr_y + ch * 0.35)
+                ])
+
                 # Ice-blue outer body
                 pygame.draw.polygon(surface, (100, 205, 255), pts_outer)
                 pygame.draw.polygon(surface, (180, 235, 255), pts_outer, 1)
@@ -1396,15 +1518,16 @@ class RoadRenderer:
                 glint_radius = int(2 + 2 * shimmer)
                 pygame.draw.circle(surface, (255, 255, 255), (int(cx), int(scr_y - ch)), glint_radius)
 
-        # 4. Snowy Evergreens & Snow-Capped Boulders
+        # 4. Snowy Evergreens & Snow-Capped Boulders with 3D Drop Shadows
         for item in self.stage7_scenery:
             px, py = item["pos"]
             is_pine = item["is_pine"]
             scr_y = ply_y - (py - self.track_distance)
             if -100 <= scr_y <= scr_h + 100:
-                if is_pine and self.tex_pine_tree:
-                    pine_surf = pygame.transform.scale(self.tex_pine_tree, (48, 64))
-                    surface.blit(pine_surf, (px - 24, scr_y - 64))
+                if is_pine and self.sprite_pine:
+                    # Blue-tinted soft snow shadow
+                    surface.blit(self.shadow_pine, (px - 19, scr_y - 20))
+                    surface.blit(self.sprite_pine, (px - self.pine_w // 2, scr_y - self.pine_h))
                     # Crisp white snow caps on the pine foliage tiers
                     # Top tier snow cap
                     pygame.draw.polygon(surface, (248, 252, 255), [
@@ -1429,9 +1552,10 @@ class RoadRenderer:
                         (px + 18, scr_y - 17),
                         (px - 18, scr_y - 17)
                     ])
-                elif not is_pine and self.tex_boulder:
-                    boulder_surf = pygame.transform.scale(self.tex_boulder, (52, 40))
-                    surface.blit(boulder_surf, (px - 26, scr_y - 40))
+                elif not is_pine and self.sprite_boulder:
+                    # Ground contact shadow on snow
+                    surface.blit(self.shadow_boulder, (px - self.boulder_w // 2 - 4, scr_y - int(self.boulder_h * 0.40)))
+                    surface.blit(self.sprite_boulder, (px - self.boulder_w // 2, scr_y - self.boulder_h))
                     # Crisp snow cap on top of boulder
                     pygame.draw.ellipse(surface, (242, 250, 255), (px - 22, scr_y - 42, 44, 18))
                     pygame.draw.ellipse(surface, (185, 220, 245), (px - 22, scr_y - 42, 44, 18), 1)
@@ -1498,6 +1622,10 @@ class RoadRenderer:
             lh = lantern["h"]
             scr_y = ply_y - (ly - self.track_distance)
             if -60 <= scr_y <= scr_h + 60:
+                # 3D Stone Lantern Drop Shadow
+                pygame.draw.ellipse(surface, (0, 0, 0, 115), (int(lx - 12), int(scr_y - 6), 26, 12))
+                pygame.draw.ellipse(surface, (0, 0, 0, 65), (int(lx - 4), int(scr_y - 2), 30, 16))
+
                 # Stone Base (pedestal / kiso)
                 pygame.draw.rect(surface, (110, 115, 125), (lx - 12, scr_y - 8, 24, 8))
                 # Stone Column (sao)
@@ -1523,13 +1651,27 @@ class RoadRenderer:
                 # Finial Jewel (hōju) on top
                 pygame.draw.circle(surface, (160, 165, 175), (int(lx), int(scr_y - 48)), 3)
 
-        # 4. Blooming Cherry Blossom Trees (Sakura Trees)
+        # 4. Blooming Cherry Blossom Trees (Sakura Trees) with 3D Drop Shadows
         for item in self.stage8_sakura_trees:
             tx, ty = item["pos"]
             scale = item["scale"]
             tone = item["tone"]
             scr_y = ply_y - (ty - self.track_distance)
             if -120 <= scr_y <= scr_h + 120:
+                # 3D Drop Shadow: Multi-lobed blossom canopy shadow on grass
+                sh_w = int(88 * scale)
+                sh_h = int(50 * scale)
+                sh_surf = pygame.Surface((sh_w + 20, sh_h + 20), pygame.SRCALPHA)
+                puffs = [(-22, -10, 22), (22, -8, 22), (0, -18, 26), (14, 6, 18), (-12, 4, 18)]
+                cx_s = (sh_w + 20) // 2
+                cy_s = (sh_h + 20) // 2
+                for ox, oy, r in puffs:
+                    pygame.draw.circle(sh_surf, (0, 0, 0, 35), (cx_s + int(ox * 0.7), cy_s + int(oy * 0.7)), int(r * scale * 0.75 + 4))
+                for ox, oy, r in puffs:
+                    pygame.draw.circle(sh_surf, (0, 0, 0, 80), (cx_s + int(ox * 0.7), cy_s + int(oy * 0.7)), int(r * scale * 0.75))
+                pygame.draw.ellipse(sh_surf, (0, 0, 0, 130), (cx_s - int(24 * scale), cy_s - 2, int(28 * scale), int(12 * scale)))
+                surface.blit(sh_surf, (tx + int(18 * scale) - sh_w // 2, scr_y + int(14 * scale) - sh_h // 2))
+
                 # Fallen petals patch on ground beneath tree
                 petal_spread = int(32 * scale)
                 for pr in range(5):
@@ -1657,6 +1799,14 @@ class RoadRenderer:
             if -80 <= scr_y <= scr_h + 80:
                 col_base = (145, 62, 38) if col_idx == 0 else ((160, 68, 42) if col_idx == 1 else (135, 55, 34))
                 col_top = (175, 78, 48) if col_idx == 0 else ((190, 85, 52) if col_idx == 1 else (165, 70, 42))
+                # 3D Mesa Ground Shadow
+                pygame.draw.polygon(surface, (0, 0, 0, 90), [
+                    (mx - mw * 0.45, scr_y),
+                    (mx + mw * 0.45, scr_y),
+                    (mx + mw * 0.55, scr_y + 12),
+                    (mx - mw * 0.35, scr_y + 12)
+                ])
+
                 # Base mesa slope
                 pygame.draw.polygon(surface, col_base, [
                     (mx - mw * 0.5, scr_y),
@@ -1674,7 +1824,7 @@ class RoadRenderer:
                 # Sunlit plateau rim
                 pygame.draw.line(surface, (235, 135, 75), (mx - mw * 0.30, scr_y - mh), (mx + mw * 0.30, scr_y - mh), 2)
 
-        # 4. Towering Saguaro Cacti along Roadside
+        # 4. Towering Saguaro Cacti along Roadside with 3D Drop Shadows
         for cactus in self.stage9_cacti:
             cx, cy = cactus["pos"]
             ch = cactus["h"]
@@ -1682,6 +1832,15 @@ class RoadRenderer:
             arm_y = cactus["arm_y"]
             scr_y = ply_y - (cy - self.track_distance)
             if -90 <= scr_y <= scr_h + 90:
+                # 3D Saguaro Cactus Drop Shadow on desert sand
+                sh_surf = pygame.Surface((int(ch + 30), int(ch * 0.7)), pygame.SRCALPHA)
+                pygame.draw.line(sh_surf, (0, 0, 0, 80), (8, 8), (int(ch * 0.75), int(ch * 0.42)), 6)
+                pygame.draw.line(sh_surf, (0, 0, 0, 75), (int(ch * 0.35), int(ch * 0.20)), (int(ch * 0.35) - 6, int(ch * 0.32)), 4)
+                if arms >= 2:
+                    pygame.draw.line(sh_surf, (0, 0, 0, 75), (int(ch * 0.50), int(ch * 0.28)), (int(ch * 0.50) + 12, int(ch * 0.22)), 4)
+                pygame.draw.ellipse(sh_surf, (0, 0, 0, 125), (0, 2, 16, 10))
+                surface.blit(sh_surf, (cx - 6, scr_y - 6))
+
                 # Main trunk
                 pygame.draw.rect(surface, (36, 78, 45), (cx - 5, scr_y - ch, 10, ch), border_radius=4)
                 pygame.draw.line(surface, (55, 110, 65), (cx - 1, scr_y - ch + 2), (cx - 1, scr_y - 2), 2)
@@ -1803,6 +1962,15 @@ class RoadRenderer:
             b_col = stand["banner_col"]
             scr_y = ply_y - (gy - self.track_distance)
             if -80 <= scr_y <= scr_h + 80:
+                # 3D Grandstand Ground Shadow on turf
+                pygame.draw.ellipse(surface, (0, 0, 0, 110), (int(gx - gw * 0.45), int(scr_y - 4), int(gw * 0.9), 12))
+                pygame.draw.polygon(surface, (0, 0, 0, 75), [
+                    (gx - gw * 0.45, scr_y),
+                    (gx + gw * 0.45, scr_y),
+                    (gx + gw * 0.55, scr_y + 14),
+                    (gx - gw * 0.35, scr_y + 14)
+                ])
+
                 # Canopy roof
                 pygame.draw.rect(surface, (45, 52, 68), (gx - gw * 0.5, scr_y - gh, gw, 10), border_radius=3)
                 # Tiers with crowd colors
@@ -1821,6 +1989,8 @@ class RoadRenderer:
             spd = light["sweep_speed"]
             scr_y = ply_y - (sy - self.track_distance)
             if -100 <= scr_y <= scr_h + 100:
+                # 3D Searchlight Base Drop Shadow
+                pygame.draw.ellipse(surface, (0, 0, 0, 120), (int(sx - 10), int(scr_y - 4), 20, 10))
                 # Searchlight base unit
                 pygame.draw.rect(surface, (70, 75, 90), (sx - 8, scr_y - 12, 16, 12), border_radius=2)
                 pygame.draw.circle(surface, (255, 255, 220), (int(sx), int(scr_y - 12)), 5)
