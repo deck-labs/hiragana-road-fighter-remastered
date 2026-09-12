@@ -3,14 +3,17 @@ game_engine.py
 Main arcade game loop, event management, physics, collision, and state transitions.
 """
 
+import os
 import sys
 import math
 import random
+import json
 import pygame
 from game_config import (
     SCREEN_WIDTH, SCREEN_HEIGHT, VIRTUAL_WIDTH, VIRTUAL_HEIGHT, TARGET_FPS,
     GAME_X, GAME_W, ROAD_MARGIN, STAGE_TRACK_LENGTH, GAME_SPEED_SCALE,
     MAX_FUEL, FUEL_REWARD, FUEL_PENALTY, SCORE_REWARD, TOTAL_STAGES,
+    TOTAL_CAMPAIGN_STAGES, SECRET_STAGE, ALL_46_HIRAGANA,
     STAGE_KANA, TRAFFIC_COLORS, COLOR_BG, COLOR_BEZEL,
     compute_aspect_ratio, get_asset_path, get_virtual_dimensions
 )
@@ -107,6 +110,15 @@ class GameEngine:
         # Auto-updater
         self.update_mgr = UpdateManager()
         self.is_update_dialog_open = False
+
+        # Flawless Run & Secret Stage State
+        self.secret_stage_unlocked = False
+        self._load_unlocks()
+        self.run_started_from_stage_1 = (start_stage == 1)
+        self.flawless_run = self.run_started_from_stage_1
+        self.damage_taken = False
+        self.secret_deck = []
+        self.secret_matched_count = 0
         
         self.score = 0.0
         self.fuel = 100.0
@@ -138,6 +150,32 @@ class GameEngine:
             if start_menu:
                 self.is_volume_menu_open = True
             self.audio.start_engine()
+
+    def _get_unlocks_path(self) -> str:
+        cfg_dir = os.path.expanduser("~/.config/hiragana_road_fighter")
+        try:
+            os.makedirs(cfg_dir, exist_ok=True)
+        except Exception:
+            pass
+        return os.path.join(cfg_dir, "unlocks.json")
+
+    def _load_unlocks(self):
+        try:
+            p = self._get_unlocks_path()
+            if os.path.exists(p):
+                with open(p, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    self.secret_stage_unlocked = bool(data.get("secret_stage_unlocked", False))
+        except Exception as e:
+            print(f"Note: Could not load unlocks: {e}")
+
+    def _save_unlocks(self):
+        try:
+            p = self._get_unlocks_path()
+            with open(p, "w", encoding="utf-8") as f:
+                json.dump({"secret_stage_unlocked": self.secret_stage_unlocked}, f, indent=2)
+        except Exception as e:
+            print(f"Note: Could not save unlocks: {e}")
 
     def hide_cursor(self):
         """Completely suppress mouse cursor using both transparent bitmap cursor and SDL visibility."""
@@ -205,6 +243,11 @@ class GameEngine:
         self.is_paused = False
         self.stage_clear_timer = 0.0
         
+        if stage_num == 11:
+            self.secret_deck = list(STAGE_KANA[11])
+            random.shuffle(self.secret_deck)
+            self.secret_matched_count = 0
+            
         if not keep_fuel:
             self.fuel = 100.0
         else:
@@ -228,6 +271,10 @@ class GameEngine:
     def start_game_from_title(self):
         self.is_title_screen = False
         self.current_stage = self.selected_stage
+        self.run_started_from_stage_1 = (self.selected_stage == 1)
+        self.flawless_run = (self.selected_stage == 1)
+        self.damage_taken = False
+        self.secret_matched_count = 0
         self.audio.stop_title_music(fade_ms=350)
         self.audio.play_fanfare()
         self.start_stage(self.selected_stage, keep_fuel=False)
@@ -260,6 +307,14 @@ class GameEngine:
         sys.exit(0)
 
     def pick_new_target_kana(self):
+        if self.current_stage == 11:
+            if not self.secret_deck:
+                self.secret_deck = list(STAGE_KANA[11])
+                random.shuffle(self.secret_deck)
+            self.current_target_kana = self.secret_deck.pop(0)
+            self.player.update_kana(self.current_target_kana["kana"])
+            return
+
         pool = STAGE_KANA.get(self.current_stage, STAGE_KANA[1])
         available = [item for item in pool if item.get("kana") != self.current_target_kana.get("kana")]
         if not available:
@@ -304,11 +359,18 @@ class GameEngine:
             self.audio.play_match()
 
     def _spawn_traffic_car(self, custom_y: float = -1.0):
-        pool = STAGE_KANA.get(self.current_stage, STAGE_KANA[1])
-        if random.random() < 0.4:
-            pick_romaji = self.current_target_kana.get("romaji", pool[0]["romaji"])
+        if self.current_stage == 11:
+            pool = STAGE_KANA[11]
+            if random.random() < 0.50:
+                pick_romaji = self.current_target_kana.get("romaji", pool[0]["romaji"])
+            else:
+                pick_romaji = random.choice(pool)["romaji"]
         else:
-            pick_romaji = random.choice(pool)["romaji"]
+            pool = STAGE_KANA.get(self.current_stage, STAGE_KANA[1])
+            if random.random() < 0.4:
+                pick_romaji = self.current_target_kana.get("romaji", pool[0]["romaji"])
+            else:
+                pick_romaji = random.choice(pool)["romaji"]
             
         spawn_world_y = custom_y if custom_y > 0.0 else (self.track_distance + 1050.0)
         
@@ -362,7 +424,8 @@ class GameEngine:
             elif self.volume_selected_index < 3:
                 self.adjust_volume(-0.05)
         elif self.is_title_screen and self.title_menu_index == 1:
-            self.selected_stage = (self.selected_stage - 2 + TOTAL_STAGES) % TOTAL_STAGES + 1
+            max_st = SECRET_STAGE if self.secret_stage_unlocked else TOTAL_CAMPAIGN_STAGES
+            self.selected_stage = (self.selected_stage - 2 + max_st) % max_st + 1
             self.current_stage = self.selected_stage
             self.road.current_stage = self.selected_stage
             self.audio.play_pause()
@@ -376,7 +439,8 @@ class GameEngine:
             elif self.volume_selected_index < 3:
                 self.adjust_volume(0.05)
         elif self.is_title_screen and self.title_menu_index == 1:
-            self.selected_stage = (self.selected_stage % TOTAL_STAGES) + 1
+            max_st = SECRET_STAGE if self.secret_stage_unlocked else TOTAL_CAMPAIGN_STAGES
+            self.selected_stage = (self.selected_stage % max_st) + 1
             self.current_stage = self.selected_stage
             self.road.current_stage = self.selected_stage
             self.audio.play_pause()
@@ -509,7 +573,8 @@ class GameEngine:
             if self.title_menu_index == 0:
                 self.start_game_from_title()
             elif self.title_menu_index == 1:
-                self.selected_stage = (self.selected_stage % TOTAL_STAGES) + 1
+                max_st = SECRET_STAGE if self.secret_stage_unlocked else TOTAL_CAMPAIGN_STAGES
+                self.selected_stage = (self.selected_stage % max_st) + 1
                 self.current_stage = self.selected_stage
                 self.road.current_stage = self.selected_stage
                 self.audio.play_pause()
@@ -520,8 +585,15 @@ class GameEngine:
             elif self.title_menu_index == 4:
                 self.quit_game()
         elif self.is_stage_clear:
-            if self.current_stage == TOTAL_STAGES:
+            if self.current_stage == 11:
                 self.return_to_title()
+            elif self.current_stage == TOTAL_STAGES:
+                if self.flawless_run and self.run_started_from_stage_1:
+                    self.secret_stage_unlocked = True
+                    self._save_unlocks()
+                    self.start_stage(11, keep_fuel=True)
+                else:
+                    self.return_to_title()
             else:
                 self.start_stage(self.current_stage + 1, keep_fuel=True)
         elif self.is_game_over:
@@ -709,8 +781,19 @@ class GameEngine:
                 if event.key == pygame.K_ESCAPE:
                     self.toggle_volume_menu()
                 elif self.is_stage_clear:
-                    if self.current_stage == TOTAL_STAGES:
-                        self.return_to_title()
+                    if self.current_stage == 11:
+                        if event.key in (pygame.K_SPACE, pygame.K_RETURN, pygame.K_b, pygame.K_ESCAPE):
+                            self.return_to_title()
+                    elif self.current_stage == TOTAL_STAGES:
+                        if self.flawless_run and self.run_started_from_stage_1:
+                            if event.key in (pygame.K_SPACE, pygame.K_RETURN, pygame.K_w, pygame.K_UP):
+                                self.secret_stage_unlocked = True
+                                self._save_unlocks()
+                                self.start_stage(11, keep_fuel=True)
+                            elif event.key in (pygame.K_b, pygame.K_ESCAPE):
+                                self.return_to_title()
+                        else:
+                            self.return_to_title()
                     else:
                         if event.key in (pygame.K_SPACE, pygame.K_RETURN, pygame.K_w, pygame.K_UP):
                             self.start_stage(self.current_stage + 1, keep_fuel=True)
@@ -805,8 +888,19 @@ class GameEngine:
                     if btn in (7, 9, 11): # In-Game Start opens volume menu
                         self.toggle_volume_menu()
                     elif self.is_stage_clear:
-                        if self.current_stage == TOTAL_STAGES:
-                            self.return_to_title()
+                        if self.current_stage == 11:
+                            if btn in (0, 1, 7, 9, 11):
+                                self.return_to_title()
+                        elif self.current_stage == TOTAL_STAGES:
+                            if self.flawless_run and self.run_started_from_stage_1:
+                                if btn in (0, 7, 9, 11):
+                                    self.secret_stage_unlocked = True
+                                    self._save_unlocks()
+                                    self.start_stage(11, keep_fuel=True)
+                                elif btn == 1:
+                                    self.return_to_title()
+                            else:
+                                self.return_to_title()
                         elif btn in (0, 7, 9, 11):
                             self.start_stage(self.current_stage + 1, keep_fuel=True)
                         elif btn == 1:
@@ -845,8 +939,16 @@ class GameEngine:
             self.player.speed_kmh = max(0.0, self.player.speed_kmh - 80.0 * delta)
             self.audio.update_engine(self.player.speed_kmh, False)
             self.stage_clear_timer += delta
-            if self.current_stage == TOTAL_STAGES and self.stage_clear_timer >= 4.0:
+            if self.current_stage == 11 and self.stage_clear_timer >= 6.0:
                 self.return_to_title()
+            elif self.current_stage == TOTAL_STAGES:
+                if self.flawless_run and self.run_started_from_stage_1:
+                    if self.stage_clear_timer >= 5.0:
+                        self.secret_stage_unlocked = True
+                        self._save_unlocks()
+                        self.start_stage(11, keep_fuel=True)
+                elif self.stage_clear_timer >= 4.0:
+                    self.return_to_title()
             return
 
         if self.is_game_over:
@@ -952,6 +1054,7 @@ class GameEngine:
         self.fuel = max(0.0, self.fuel - fuel_drain)
         if self.fuel <= 0.0:
             self.is_game_over = True
+            self.flawless_run = False
             self.audio.stop_all()
             
         # 4. Road Bounds Check
@@ -1100,14 +1203,21 @@ class GameEngine:
                 
                 if is_match:
                     # MATCH! Refuel and reward
-                    self.score += SCORE_REWARD
-                    self.fuel = min(MAX_FUEL, self.fuel + FUEL_REWARD)
+                    if self.current_stage == 11:
+                        self.score += SCORE_REWARD * 2.0  # +100 bonus stage reward
+                        self.fuel = min(MAX_FUEL, self.fuel + 35.0)
+                        self.secret_matched_count += 1
+                    else:
+                        self.score += SCORE_REWARD
+                        self.fuel = min(MAX_FUEL, self.fuel + FUEL_REWARD)
                     self.audio.play_match()
                     self.match_timer = 2.0
                     car.trigger_match()
                     self.pick_new_target_kana()
                 else:
-                    # MISMATCH CRASH! Spinout and 15% penalty
+                    # MISMATCH CRASH! Spinout, damage recorded, and 15% penalty
+                    self.damage_taken = True
+                    self.flawless_run = False
                     if self.player.wobble_timer <= 0.0:
                         self.player.trigger_wobble()
                         self.fuel = max(0.0, self.fuel - FUEL_PENALTY)
@@ -1152,7 +1262,10 @@ class GameEngine:
             self.current_target_kana.get("kana", "あ"),
             self.current_target_kana.get("romaji", "a"),
             self.player.speed_kmh, self.player.is_turbo, self.player.is_braking,
-            self.fuel, self.score, self.match_timer
+            self.fuel, self.score, self.match_timer,
+            flawless_active=(self.flawless_run and self.current_stage <= TOTAL_STAGES),
+            damage_taken=self.damage_taken,
+            gauntlet_count=self.secret_matched_count
         )
         
         # 5. Overlays
@@ -1171,7 +1284,10 @@ class GameEngine:
         elif self.is_paused:
             self.hud.render_pause_overlay(self.virtual_screen)
         elif self.is_stage_clear:
-            self.hud.render_stage_clear_overlay(self.virtual_screen, self.current_stage)
+            self.hud.render_stage_clear_overlay(
+                self.virtual_screen, self.current_stage,
+                is_flawless_unlock=(self.flawless_run and self.run_started_from_stage_1)
+            )
         elif self.is_game_over:
             self.hud.render_game_over_overlay(self.virtual_screen)
 

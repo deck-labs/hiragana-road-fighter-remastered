@@ -21,7 +21,7 @@ ROAD_WIDTH = GAME_W - (ROAD_MARGIN * 2.0)  # 640.0 px wide 4-lane highway
 PLAYER_SCREEN_Y = 840.0
 
 # Version & Release Metadata
-GAME_VERSION = "1.0.3"
+GAME_VERSION = "1.0.4"
 GITHUB_REPO = "deck-labs/hiragana-road-fighter-remastered"
 VERSION_CHECK_URL = "https://raw.githubusercontent.com/deck-labs/hiragana-road-fighter-remastered/main/version.json"
 RELEASES_API_URL = "https://api.github.com/repos/deck-labs/hiragana-road-fighter-remastered/releases/latest"
@@ -40,8 +40,10 @@ FUEL_REWARD = 30.0
 FUEL_PENALTY = 15.0
 SCORE_REWARD = 50.0
 
-# Total Stages
+# Total Stages & Secret Stage
 TOTAL_STAGES = 10
+TOTAL_CAMPAIGN_STAGES = 10
+SECRET_STAGE = 11
 
 STAGE_NAMES = {
     1: "FOREST HIGHWAY",
@@ -53,7 +55,8 @@ STAGE_NAMES = {
     7: "GLACIER TUNDRA",
     8: "SAKURA BOULEVARD",
     9: "SUNSET CANYON",
-    10: "FUJI SPEEDWAY"
+    10: "FUJI SPEEDWAY",
+    11: "RAINBOW SKYWAY"
 }
 
 STAGE_ENV_NOTES = {
@@ -66,8 +69,69 @@ STAGE_ENV_NOTES = {
     7: "FROST GLACIER // POLAR ICEFALL // ICY APEXES",
     8: "CHERRY BLOSSOM BOULEVARD // SPRING DRIFT // SAKURA PETALS",
     9: "RED ROCK CANYON // DUSK MESAS // HIGH-SPEED GORGE SWEEPS",
-    10: "FUJI SPEEDWAY // GRAND CHAMPIONSHIP // GOLDEN APEX"
+    10: "FUJI SPEEDWAY // GRAND CHAMPIONSHIP // GOLDEN APEX",
+    11: "SECRET BONUS STAGE // ALL 46 HIRAGANA GAUNTLET // COSMIC AURORA"
 }
+
+# Complete 46 Core Hiragana Syllabary for Mastery Gauntlet
+ALL_46_HIRAGANA = [
+    # A-line
+    {"kana": "あ", "romaji": "a"},
+    {"kana": "い", "romaji": "i"},
+    {"kana": "う", "romaji": "u"},
+    {"kana": "え", "romaji": "e"},
+    {"kana": "お", "romaji": "o"},
+    # Ka-line
+    {"kana": "か", "romaji": "ka"},
+    {"kana": "き", "romaji": "ki"},
+    {"kana": "く", "romaji": "ku"},
+    {"kana": "け", "romaji": "ke"},
+    {"kana": "こ", "romaji": "ko"},
+    # Sa-line
+    {"kana": "さ", "romaji": "sa"},
+    {"kana": "し", "romaji": "shi"},
+    {"kana": "す", "romaji": "su"},
+    {"kana": "せ", "romaji": "se"},
+    {"kana": "そ", "romaji": "so"},
+    # Ta-line
+    {"kana": "た", "romaji": "ta"},
+    {"kana": "ち", "romaji": "chi"},
+    {"kana": "つ", "romaji": "tsu"},
+    {"kana": "て", "romaji": "te"},
+    {"kana": "と", "romaji": "to"},
+    # Na-line
+    {"kana": "な", "romaji": "na"},
+    {"kana": "に", "romaji": "ni"},
+    {"kana": "ぬ", "romaji": "nu"},
+    {"kana": "ね", "romaji": "ne"},
+    {"kana": "の", "romaji": "no"},
+    # Ha-line
+    {"kana": "は", "romaji": "ha"},
+    {"kana": "ひ", "romaji": "hi"},
+    {"kana": "ふ", "romaji": "fu"},
+    {"kana": "へ", "romaji": "he"},
+    {"kana": "ほ", "romaji": "ho"},
+    # Ma-line
+    {"kana": "ま", "romaji": "ma"},
+    {"kana": "み", "romaji": "mi"},
+    {"kana": "む", "romaji": "mu"},
+    {"kana": "め", "romaji": "me"},
+    {"kana": "も", "romaji": "mo"},
+    # Ya-line
+    {"kana": "や", "romaji": "ya"},
+    {"kana": "ゆ", "romaji": "yu"},
+    {"kana": "よ", "romaji": "yo"},
+    # Ra-line
+    {"kana": "ら", "romaji": "ra"},
+    {"kana": "り", "romaji": "ri"},
+    {"kana": "る", "romaji": "ru"},
+    {"kana": "れ", "romaji": "re"},
+    {"kana": "ろ", "romaji": "ro"},
+    # Wa-line & N
+    {"kana": "わ", "romaji": "wa"},
+    {"kana": "を", "romaji": "wo"},
+    {"kana": "ん", "romaji": "n"}
+]
 
 STAGE_KANA = {
     1: [
@@ -140,7 +204,8 @@ STAGE_KANA = {
         {"kana": "ね", "romaji": "ne"},
         {"kana": "る", "romaji": "ru"},
         {"kana": "ろ", "romaji": "ro"}
-    ]
+    ],
+    11: ALL_46_HIRAGANA
 }
 
 TRAFFIC_COLORS = ["blue", "green", "yellow", "purple", "cyan", "orange"]

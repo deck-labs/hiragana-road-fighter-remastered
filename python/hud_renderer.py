@@ -62,14 +62,17 @@ class HudRenderer:
         pygame.draw.rect(surface, (10, 20, 36), st_rect, border_radius=6)
         pygame.draw.rect(surface, COLOR_GOLD, st_rect, 2, border_radius=6)
         
-        txt_st = self.font_menu.render(f"STAGE {stage:02d}", True, COLOR_GOLD)
+        if stage == 11:
+            txt_st = self.font_menu.render("BONUS STAGE", True, COLOR_GOLD)
+        else:
+            txt_st = self.font_menu.render(f"STAGE {stage:02d}", True, COLOR_GOLD)
         surface.blit(txt_st, txt_st.get_rect(center=(140, 38)))
         
         st_name = STAGE_NAMES.get(stage, "HIGHWAY")
         txt_name = self.font_stage_name.render(st_name, True, COLOR_CYAN)
         surface.blit(txt_name, txt_name.get_rect(center=(140, 76)))
         
-        txt_tele = self.font_desc.render("GPS TRACK TELEMETRY", True, (180, 220, 250))
+        txt_tele = self.font_desc.render("ALL-KANA GAUNTLET" if stage == 11 else "GPS TRACK TELEMETRY", True, (180, 220, 250))
         surface.blit(txt_tele, txt_tele.get_rect(center=(140, 112)))
         
         # Dedicated Bottom Distance Telemetry Card
@@ -151,7 +154,8 @@ class HudRenderer:
         pygame.draw.rect(surface, (60, 90, 130), (bar_bx, bar_by, bar_bw, bar_bh), 1, border_radius=4)
 
     def render_right_panel(self, surface: pygame.Surface, stage: int, target_kana: str, target_romaji: str,
-                           speed_kmh: float, is_turbo: bool, is_braking: bool, fuel: float, score: float, match_timer: float):
+                           speed_kmh: float, is_turbo: bool, is_braking: bool, fuel: float, score: float, match_timer: float,
+                           flawless_active: bool = False, damage_taken: bool = False, gauntlet_count: int = 0):
         # 1240 to 1920 px (width 680)
         scr_h = surface.get_height()
         self.draw_tiled_carbon(surface, (1240, 0, 680, scr_h))
@@ -169,7 +173,10 @@ class HudRenderer:
         pygame.draw.rect(surface, border_col, chamber_rect, 2)
         
         # Header text
-        txt_tgt_h = self.font_sub.render("TARGET KANA INTERCEPT TARGET", True, COLOR_CYAN)
+        if stage == 11:
+            txt_tgt_h = self.font_sub.render("★ 46-KANA GAUNTLET TARGET ★", True, COLOR_GOLD)
+        else:
+            txt_tgt_h = self.font_sub.render("TARGET KANA INTERCEPT TARGET", True, COLOR_CYAN)
         surface.blit(txt_tgt_h, (rx + 20, box_y + 12))
         
         # Huge Kana character
@@ -186,7 +193,10 @@ class HudRenderer:
         surface.blit(txt_ro, txt_ro.get_rect(center=ro_box.center))
         
         # Subtitle instruction
-        txt_sub = self.font_caption.render("MATCH TRAFFIC ROOF ROMAJI TO REFUEL +30%", True, (230, 242, 255))
+        if stage == 11:
+            txt_sub = self.font_caption.render("MATCH TRAFFIC FOR ALL 46 KANA! (+100 PTS / +35% FUEL)", True, (255, 240, 180))
+        else:
+            txt_sub = self.font_caption.render("MATCH TRAFFIC ROOF ROMAJI TO REFUEL +30%", True, (230, 242, 255))
         sub_r = txt_sub.get_rect(center=(rx + rw // 2, box_y + 220))
         surface.blit(txt_sub, sub_r)
         
@@ -281,6 +291,28 @@ class HudRenderer:
         
         txt_sc_val = self.font_speed.render(f"{int(score):06d}", True, COLOR_GOLD)
         surface.blit(txt_sc_val, (rx + 24, score_y + 45))
+
+        # Flawless Status or Gauntlet Tracker Badge
+        if stage == 11:
+            badge_rect = pygame.Rect(rx + rw - 310, score_y + 36, 290, 48)
+            pygame.draw.rect(surface, (24, 16, 48), badge_rect, border_radius=6)
+            pygame.draw.rect(surface, (255, 215, 0), badge_rect, 2, border_radius=6)
+            txt_b1 = self.font_sub.render(f"GAUNTLET: {gauntlet_count} / 46", True, (255, 220, 50))
+            surface.blit(txt_b1, txt_b1.get_rect(center=badge_rect.center))
+        elif flawless_active:
+            badge_rect = pygame.Rect(rx + rw - 310, score_y + 36, 290, 48)
+            pygame.draw.rect(surface, (10, 32, 24), badge_rect, border_radius=6)
+            pygame.draw.rect(surface, (46, 224, 125), badge_rect, 2, border_radius=6)
+            txt_b1 = self.font_caption.render("★ NO-DAMAGE RUN ACTIVE ★", True, (46, 224, 125))
+            txt_b2 = self.font_tiny.render("SECRET TRIAL ELIGIBLE", True, (170, 255, 210))
+            surface.blit(txt_b1, txt_b1.get_rect(center=(badge_rect.centerx, badge_rect.centery - 9)))
+            surface.blit(txt_b2, txt_b2.get_rect(center=(badge_rect.centerx, badge_rect.centery + 10)))
+        elif damage_taken:
+            badge_rect = pygame.Rect(rx + rw - 310, score_y + 36, 290, 48)
+            pygame.draw.rect(surface, (28, 14, 14), badge_rect, border_radius=6)
+            pygame.draw.rect(surface, (140, 50, 50), badge_rect, 1, border_radius=6)
+            txt_b1 = self.font_caption.render("⚠️ DAMAGE RECORDED", True, (210, 90, 90))
+            surface.blit(txt_b1, txt_b1.get_rect(center=badge_rect.center))
         
         env_note = STAGE_ENV_NOTES.get(stage, "")
         txt_env = self.font_desc.render(env_note, True, (190, 220, 250))
@@ -295,6 +327,7 @@ class HudRenderer:
         txt_c_h = self.font_sub.render("FLIGHT CONTROLS & COMMANDS", True, COLOR_CYAN)
         surface.blit(txt_c_h, (rx + 20, ctrl_y + 14))
         
+        goal_msg = "BONUS GOAL: CONQUER ALL 46 HIRAGANA!" if stage == 11 else f"TARGET GOAL: 36,000 M // {TOTAL_STAGES} TOTAL STAGES"
         lines = [
             "STEER: [A / D] / [LEFT / RIGHT] / D-PAD / ANALOG STICK",
             "TURBO BOOST: [W] / [UP] / [SPACE] / GAMEPAD [A] / [RT]",
@@ -302,7 +335,7 @@ class HudRenderer:
             "OPTIONS / AUDIO: [ESC] / [ENTER] / GAMEPAD [START]",
             "QUICK PAUSE: [P] / GAMEPAD [SELECT]",
             "QUIT TO DESKTOP: GAMEPAD [SELECT + START]",
-            f"TARGET GOAL: 36,000 M // {TOTAL_STAGES} TOTAL STAGES"
+            goal_msg
         ]
         for idx, line in enumerate(lines):
             txt_l = self.font_caption.render(line, True, (235, 245, 255))
@@ -366,8 +399,12 @@ class HudRenderer:
         # Item 1: STAGE SELECT
         is_sel_1 = (menu_index == 1)
         col1 = COLOR_WHITE if (is_sel_1 and is_blink) else (COLOR_GOLD if is_sel_1 else (210, 230, 250))
-        st_name = STAGE_NAMES.get(selected_stage, "STAGE 01")
-        st_str = f"STAGE SELECT   ◄  STAGE {selected_stage:02d} : {st_name}  ►" if is_sel_1 else f"STAGE SELECT   < STAGE {selected_stage:02d} >"
+        if selected_stage == 11:
+            st_name = "★ RAINBOW SKYWAY ★"
+            st_str = f"STAGE SELECT   ◄  BONUS TRIAL : {st_name}  ►" if is_sel_1 else "STAGE SELECT   < BONUS TRIAL : ★ SECRET ★ >"
+        else:
+            st_name = STAGE_NAMES.get(selected_stage, "STAGE 01")
+            st_str = f"STAGE SELECT   ◄  STAGE {selected_stage:02d} : {st_name}  ►" if is_sel_1 else f"STAGE SELECT   < STAGE {selected_stage:02d} >"
         txt_1 = self.font_menu.render(st_str, True, col1)
         r1 = txt_1.get_rect(center=(cx, menu_y_start + spacing))
         if is_sel_1 and is_blink:
@@ -569,12 +606,54 @@ class HudRenderer:
         txt_sub = self.font_caption.render("SELECT / START: RESUME   |   SELECT + START: QUIT", True, COLOR_WHITE)
         surface.blit(txt_sub, txt_sub.get_rect(center=(cx, cy + 34)))
 
-    def render_stage_clear_overlay(self, surface: pygame.Surface, stage: int):
+    def render_stage_clear_overlay(self, surface: pygame.Surface, stage: int, is_flawless_unlock: bool = False):
         surface_h = surface.get_height()
         cx = 760
         cy = surface_h // 2
         
-        if stage == TOTAL_STAGES:
+        if stage == 11:
+            # Stage 11 Cleared: Grand Master Victory Overlay
+            box_w = 880
+            box_h = 280
+            r_box = pygame.Rect(cx - box_w // 2, cy - box_h // 2, box_w, box_h)
+            pygame.draw.rect(surface, (14, 10, 32), r_box, border_radius=14)
+            pygame.draw.rect(surface, (255, 215, 0), r_box, 3, border_radius=14)
+            pygame.draw.rect(surface, (0, 220, 255), r_box.inflate(-8, -8), 1, border_radius=10)
+
+            txt_h = self.font_menu.render("★ ULTIMATE HIRAGANA MASTER! ★", True, COLOR_GOLD)
+            surface.blit(txt_h, txt_h.get_rect(center=(cx, cy - 65)))
+            
+            txt_m = self.font_sub.render("ALL 46 HIRAGANA MASTERED ON A FLAWLESS RUN!", True, (0, 240, 255))
+            surface.blit(txt_m, txt_m.get_rect(center=(cx, cy - 15)))
+
+            txt_s = self.font_caption.render("STAGE 11 SECRET TRIAL CONQUERED // PERFECT VICTORY", True, (255, 235, 130))
+            surface.blit(txt_s, txt_s.get_rect(center=(cx, cy + 30)))
+            
+            txt_f = self.font_caption.render("PRESS [SPACE] / [ENTER] / GAMEPAD [A] FOR TITLE SCREEN", True, COLOR_WHITE)
+            surface.blit(txt_f, txt_f.get_rect(center=(cx, cy + 85)))
+
+        elif stage == TOTAL_STAGES and is_flawless_unlock:
+            # Stage 10 Cleared on Flawless Run: Secret Stage Unlocked!
+            box_w = 880
+            box_h = 280
+            r_box = pygame.Rect(cx - box_w // 2, cy - box_h // 2, box_w, box_h)
+            pygame.draw.rect(surface, (10, 22, 38), r_box, border_radius=14)
+            pygame.draw.rect(surface, (255, 215, 0), r_box, 3, border_radius=14)
+            pygame.draw.rect(surface, (46, 224, 125), r_box.inflate(-8, -8), 1, border_radius=10)
+
+            txt_h = self.font_menu.render("★ FLAWLESS RUN ACCOMPLISHED! ★", True, (46, 224, 125))
+            surface.blit(txt_h, txt_h.get_rect(center=(cx, cy - 65)))
+            
+            txt_m = self.font_sub.render("ZERO DAMAGE TAKEN ACROSS ALL 10 STAGES!", True, COLOR_GOLD)
+            surface.blit(txt_m, txt_m.get_rect(center=(cx, cy - 15)))
+
+            txt_s = self.font_caption.render("SECRET FINAL STAGE UNLOCKED: ALL 46-HIRAGANA MASTERY GAUNTLET", True, (0, 240, 255))
+            surface.blit(txt_s, txt_s.get_rect(center=(cx, cy + 30)))
+            
+            txt_f = self.font_caption.render("PRESS [SPACE] / [ENTER] / GAMEPAD [A] TO ENTER SECRET TRIAL", True, COLOR_WHITE)
+            surface.blit(txt_f, txt_f.get_rect(center=(cx, cy + 85)))
+
+        elif stage == TOTAL_STAGES:
             # All stages cleared! Generous 880px box width guarantees 60px padding
             box_w = 880
             box_h = 260

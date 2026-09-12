@@ -57,6 +57,10 @@ class RoadRenderer:
         self.stage10_grandstands = []
         self.stage10_banners = []
         self.stage10_searchlights = []
+        self.stage11_stars = []
+        self.stage11_crystals = []
+        self.stage11_torii = []
+        self.stage11_gantries = []
         
         self._load_assets()
         self._generate_scenery()
@@ -401,6 +405,50 @@ class RoadRenderer:
                 "sweep_speed": rng.uniform(1.2, 2.4)
             })
             sy += rng.uniform(320.0, 500.0)
+
+        # Stage 11: Rainbow Skyway (Secret All-Hiragana Mastery Gauntlet)
+        for _ in range(100):
+            self.stage11_stars.append({
+                "x": rng.uniform(GAME_X, GAME_X + GAME_W),
+                "y": rng.uniform(0.0, 1080.0),
+                "r": rng.uniform(1.0, 3.0),
+                "phase": rng.uniform(0.0, 6.28),
+                "speed": rng.uniform(1.5, 3.5),
+                "color": rng.choice([(255, 255, 255), (180, 230, 255), (255, 220, 240), (255, 240, 180)])
+            })
+
+        cy = 200.0
+        while cy < STAGE_TRACK_LENGTH - 600.0:
+            lx = rng.uniform(GAME_X + 25.0, GAME_X + 105.0)
+            rx = rng.uniform(GAME_X + GAME_W - 105.0, GAME_X + GAME_W - 25.0)
+            self.stage11_crystals.append({"pos": (lx, cy), "color": rng.choice([(0, 235, 255), (255, 120, 240), (255, 215, 0), (120, 255, 180)])})
+            self.stage11_crystals.append({"pos": (rx, cy), "color": rng.choice([(0, 235, 255), (255, 120, 240), (255, 215, 0), (120, 255, 180)])})
+            cy += rng.uniform(220.0, 360.0)
+
+        ty = 800.0
+        while ty < STAGE_TRACK_LENGTH - 1200.0:
+            self.stage11_torii.append({
+                "y": ty,
+                "color": rng.choice([(255, 45, 85), (0, 220, 255), (255, 215, 0)])
+            })
+            ty += rng.uniform(3200.0, 4600.0)
+
+        g_messages = [
+            "★ SECRET STAGE: ALL 46 HIRAGANA GAUNTLET ★",
+            "★ NO-DAMAGE CHAMPION // PROVE YOUR MASTERY ★",
+            "★ あ・か・さ・た・な・は・ま・や・ら・わ・ん ★",
+            "★ BONUS STAGE: REFUEL +35% // SCORE +100 ★",
+            "★ MASTER EVERY HIRAGANA // FLAWLESS VICTORY ★"
+        ]
+        gy = 1800.0
+        g_idx = 0
+        while gy < STAGE_TRACK_LENGTH - 1500.0:
+            self.stage11_gantries.append({
+                "y": gy,
+                "text": g_messages[g_idx % len(g_messages)]
+            })
+            gy += 6500.0
+            g_idx += 1
 
     def get_road_edges(self, stage: int, world_y: float) -> tuple[float, float]:
         """Calculates (left_edge, right_edge) for any track coordinate."""
@@ -912,6 +960,54 @@ class RoadRenderer:
                     shift = 30.0 * (0.5 + 0.5 * math.cos(t * math.pi))
                     
             return (normal_left + shift, normal_right + shift)
+
+        if stage == 11:
+            # Stage 11: Rainbow Skyway - Majestic sweeping celebratory curves & cosmic super-highway
+            if world_y < 0.0 or world_y >= STAGE_TRACK_LENGTH - 2400.0:
+                return (normal_left, normal_right)
+                
+            seg_len = 2400.0
+            seg_idx = int(world_y / seg_len)
+            seg_pos = world_y % seg_len
+            pattern = abs(seg_idx) % 4
+            
+            shift = 0.0
+            if pattern == 0:
+                # Wide sweeping left curve
+                if 250.0 <= seg_pos < 850.0:
+                    t = (seg_pos - 250.0) / 600.0
+                    shift = -120.0 * (0.5 - 0.5 * math.cos(t * math.pi))
+                elif 850.0 <= seg_pos < 1600.0:
+                    shift = -120.0
+                elif 1600.0 <= seg_pos < 2200.0:
+                    t = (seg_pos - 1600.0) / 600.0
+                    shift = -120.0 * (0.5 + 0.5 * math.cos(t * math.pi))
+            elif pattern == 1:
+                # Wide sweeping right curve
+                if 250.0 <= seg_pos < 850.0:
+                    t = (seg_pos - 250.0) / 600.0
+                    shift = 120.0 * (0.5 - 0.5 * math.cos(t * math.pi))
+                elif 850.0 <= seg_pos < 1600.0:
+                    shift = 120.0
+                elif 1600.0 <= seg_pos < 2200.0:
+                    t = (seg_pos - 1600.0) / 600.0
+                    shift = 120.0 * (0.5 + 0.5 * math.cos(t * math.pi))
+            elif pattern == 2:
+                # Gentle cosmic S-chicane
+                if 200.0 <= seg_pos < 700.0:
+                    t = (seg_pos - 200.0) / 500.0
+                    shift = -90.0 * (0.5 - 0.5 * math.cos(t * math.pi))
+                elif 700.0 <= seg_pos < 1550.0:
+                    t = (seg_pos - 700.0) / 850.0
+                    shift = -90.0 + 180.0 * (0.5 - 0.5 * math.cos(t * math.pi))
+                elif 1550.0 <= seg_pos < 2050.0:
+                    t = (seg_pos - 1550.0) / 500.0
+                    shift = 90.0 * (0.5 + 0.5 * math.cos(t * math.pi))
+            else:
+                # High-speed straightaway with subtle undulating drift
+                shift = 20.0 * math.sin((world_y / 400.0) * math.pi)
+                
+            return (normal_left + shift, normal_right + shift)
             
         return (normal_left, normal_right)
 
@@ -953,6 +1049,10 @@ class RoadRenderer:
             self._render_stage8(surface)
         elif stage == 9:
             self._render_stage9(surface)
+        elif stage == 10:
+            self._render_stage10(surface)
+        elif stage == 11:
+            self._render_stage11(surface)
         else:
             self._render_stage10(surface)
             
@@ -2035,6 +2135,150 @@ class RoadRenderer:
             if int(world_y) % 40 < 6:
                 pygame.draw.rect(surface, (180, 240, 255), (r_left - 12, y + 1, 4, 4))
                 pygame.draw.rect(surface, (180, 240, 255), (r_right + 8, y + 1, 4, 4))
+
+    def _render_stage11(self, surface: pygame.Surface):
+        """Stage 11: Rainbow Skyway - Secret All-46 Hiragana Mastery Bonus Stage."""
+        scr_h = self.screen_height
+        ply_y = self.player_screen_y
+        slice_h = 6
+        import time
+        now = time.time()
+
+        # 1. Cosmic Aurora & Celestial Void Background
+        pygame.draw.rect(surface, (12, 10, 26), (GAME_X, 0, GAME_W, scr_h))
+        
+        # Cosmic Aurora ribbons in the upper sky
+        aurora_h = int(scr_h * 0.45)
+        for ay in range(0, aurora_h, 8):
+            t_a = ay / aurora_h
+            a_surf = pygame.Surface((int(GAME_W), 8), pygame.SRCALPHA)
+            r = int(60 + 120 * (0.5 + 0.5 * math.sin(now + ay * 0.03)))
+            g = int(30 + 80 * (0.5 + 0.5 * math.cos(now * 0.8 + ay * 0.02)))
+            b = int(140 + 90 * (0.5 + 0.5 * math.sin(now * 1.2 + ay * 0.04)))
+            alpha = int(75 * (1.0 - t_a))
+            pygame.draw.rect(a_surf, (r, g, b, alpha), (0, 0, int(GAME_W), 8))
+            surface.blit(a_surf, (GAME_X, ay))
+
+        # Twinkling Cosmic Stars
+        for st in self.stage11_stars:
+            twinkle = 0.5 + 0.5 * math.sin(now * st["speed"] + st["phase"])
+            sx = int(st["x"])
+            sy = int((st["y"] + self.track_distance * 0.05) % scr_h)
+            scol = tuple(int(c * twinkle) for c in st["color"])
+            pygame.draw.circle(surface, scol, (sx, sy), int(st["r"]))
+
+        # 2. Road Slices & Pulsing RGB Rainbow Curbs
+        road_left_base = GAME_X + ROAD_MARGIN
+        road_w_base = GAME_W - (ROAD_MARGIN * 2.0)
+        lane_w = road_w_base / 4.0
+
+        for y in range(0, scr_h, slice_h):
+            world_y = self.track_distance + (ply_y - y)
+            r_left, r_right = self.get_road_edges(11, world_y)
+            r_w = r_right - r_left
+
+            # Verges: Dark cosmic twilight shoulders
+            verge_l_w = r_left - GAME_X
+            verge_r_w = (GAME_X + GAME_W) - r_right
+            if verge_l_w > 0:
+                pygame.draw.rect(surface, (16, 14, 34), (GAME_X, y, int(verge_l_w), slice_h))
+            if verge_r_w > 0:
+                pygame.draw.rect(surface, (16, 14, 34), (int(r_right), y, int(verge_r_w), slice_h))
+
+            # Road Surface: Sleek midnight cosmic asphalt
+            pygame.draw.rect(surface, (22, 24, 36), (int(r_left), y, int(r_w), slice_h))
+
+            # Pulsing RGB Rainbow Curbs (smooth hue rotation along distance & time)
+            hue = int((world_y * 0.15 + now * 140.0)) % 360
+            rb_color = pygame.Color(0)
+            rb_color.hsva = (hue, 85, 100, 100)
+            curb_col = (rb_color.r, rb_color.g, rb_color.b)
+
+            pygame.draw.rect(surface, curb_col, (int(r_left - 8), y, 8, slice_h))
+            pygame.draw.rect(surface, curb_col, (int(r_right), y, 8, slice_h))
+
+            # Glowing Neon Lane Dividers
+            dash_cycle = (int(y + self.track_distance)) % 60
+            if dash_cycle < 30:
+                # Outer dividers: Neon Cyan
+                pygame.draw.rect(surface, (0, 225, 255), (int(r_left + lane_w - 1.5), y, 3, slice_h))
+                pygame.draw.rect(surface, (0, 225, 255), (int(r_left + lane_w * 3.0 - 1.5), y, 3, slice_h))
+                # Center divider: Glowing Electric Gold
+                pygame.draw.rect(surface, (255, 220, 40), (int(r_left + lane_w * 2.0 - 2.0), y, 4, slice_h))
+
+        # 3. Glowing Prismatic Crystals along Roadside with 3D Drop Shadows
+        for cry in self.stage11_crystals:
+            cx, cy = cry["pos"]
+            ccol = cry["color"]
+            scr_y = ply_y - (cy - self.track_distance)
+            if -80 <= scr_y <= scr_h + 80:
+                # 3D Drop shadow offset (+12, +8) down-right
+                pygame.draw.ellipse(surface, (0, 0, 0, 120), (int(cx - 10 + 10), int(scr_y - 4 + 8), 24, 12))
+                pygame.draw.ellipse(surface, (0, 0, 0, 140), (int(cx - 12), int(scr_y - 4), 24, 10))
+                # Diamond / Prismatic Crystal
+                cw = 18
+                ch = 44
+                pts_cry = [
+                    (int(cx), int(scr_y - ch)),
+                    (int(cx + cw * 0.5), int(scr_y - ch * 0.45)),
+                    (int(cx), int(scr_y)),
+                    (int(cx - cw * 0.5), int(scr_y - ch * 0.45))
+                ]
+                pygame.draw.polygon(surface, ccol, pts_cry)
+                pts_facet = [
+                    (int(cx), int(scr_y - ch)),
+                    (int(cx), int(scr_y)),
+                    (int(cx - cw * 0.5), int(scr_y - ch * 0.45))
+                ]
+                highlight = tuple(min(255, int(c * 1.35)) for c in ccol)
+                pygame.draw.polygon(surface, highlight, pts_facet)
+                pygame.draw.polygon(surface, (255, 255, 255), pts_cry, 1)
+
+        # 4. Floating Cyber-Torii Arches Spanning the Road
+        for tor in self.stage11_torii:
+            ty = tor["y"]
+            tcol = tor["color"]
+            scr_y = ply_y - (ty - self.track_distance)
+            if -120 <= scr_y <= scr_h + 120:
+                r_l, r_r = self.get_road_edges(11, ty)
+                arch_w = (r_r - r_l) + 60.0
+                ax = (r_l + r_r) * 0.5
+                arch_h = 75.0
+                # Pillar 3D shadows at bases
+                pygame.draw.ellipse(surface, (0, 0, 0, 140), (int(r_l - 30 + 10), int(scr_y - 4 + 8), 24, 12))
+                pygame.draw.ellipse(surface, (0, 0, 0, 140), (int(r_r + 6 + 10), int(scr_y - 4 + 8), 24, 12))
+                # Pillars
+                pygame.draw.rect(surface, tcol, (int(r_l - 26), int(scr_y - arch_h), 14, int(arch_h)), border_radius=2)
+                pygame.draw.rect(surface, tcol, (int(r_r + 12), int(scr_y - arch_h), 14, int(arch_h)), border_radius=2)
+                # Main curved crossbeam (Kasagi)
+                pygame.draw.rect(surface, tcol, (int(ax - arch_w * 0.55), int(scr_y - arch_h - 10), int(arch_w * 1.1), 12), border_radius=4)
+                pygame.draw.rect(surface, (255, 255, 255), (int(ax - arch_w * 0.55), int(scr_y - arch_h - 10), int(arch_w * 1.1), 12), 1, border_radius=4)
+                # Secondary crossbeam (Nuki)
+                pygame.draw.rect(surface, tcol, (int(ax - arch_w * 0.5), int(scr_y - arch_h + 12), int(arch_w), 8), border_radius=2)
+
+        # 5. Holographic Gantries with Japanese / Romanji Mastery Text
+        for gan in self.stage11_gantries:
+            gy = gan["y"]
+            msg = gan["text"]
+            scr_y = ply_y - (gy - self.track_distance)
+            if -100 <= scr_y <= scr_h + 100:
+                r_l, r_r = self.get_road_edges(11, gy)
+                gw = (r_r - r_l) + 40.0
+                gx = (r_l + r_r) * 0.5
+                gh = 55.0
+                # 3D Gantry pillar drop shadows
+                pygame.draw.ellipse(surface, (0, 0, 0, 130), (int(r_l - 24 + 10), int(scr_y - 4 + 8), 22, 10))
+                pygame.draw.ellipse(surface, (0, 0, 0, 130), (int(r_r + 2 + 10), int(scr_y - 4 + 8), 22, 10))
+                # Posts
+                pygame.draw.rect(surface, (40, 50, 70), (int(r_l - 20), int(scr_y - gh), 10, int(gh)))
+                pygame.draw.rect(surface, (40, 50, 70), (int(r_r + 10), int(scr_y - gh), 10, int(gh)))
+                # Holographic signboard
+                board_rect = pygame.Rect(int(gx - gw * 0.5), int(scr_y - gh - 8), int(gw), 36)
+                pygame.draw.rect(surface, (10, 18, 32), board_rect, border_radius=4)
+                pygame.draw.rect(surface, (0, 220, 255), board_rect, 2, border_radius=4)
+                if self.font_gantry:
+                    txt = self.font_gantry.render(msg, True, (255, 230, 80))
+                    surface.blit(txt, txt.get_rect(center=board_rect.center))
 
     def _render_finish_line(self, surface: pygame.Surface):
         scr_h = self.screen_height
