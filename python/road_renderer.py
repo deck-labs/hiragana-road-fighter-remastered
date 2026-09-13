@@ -184,6 +184,33 @@ class RoadRenderer:
         # Core contact shadow directly beneath boulder
         pygame.draw.ellipse(self.shadow_boulder, (0, 0, 0, 145), (4, 6, self.boulder_w, int(self.boulder_h * 0.55)))
 
+    def _get_safe_verge_x(self, stage: int, world_y: float, side: int, obj_w: float, road_clearance: float = 28.0, screen_pad: float = 12.0, rng: random.Random = None) -> tuple[float, int]:
+        """Calculates a guaranteed safe verge X coordinate outside the road for any stage at world_y.
+        Returns (x, actual_side) where actual_side is -1 for left verge, 1 for right verge.
+        If the requested side is too narrow due to road curvature, shifts placement to the wide verge."""
+        if rng is None:
+            rng = random
+        rl, rr = self.get_road_edges(stage, world_y)
+        min_lx = GAME_X + screen_pad + obj_w * 0.5
+        max_lx = rl - road_clearance - obj_w * 0.5
+        min_rx = rr + road_clearance + obj_w * 0.5
+        max_rx = (GAME_X + GAME_W) - screen_pad - obj_w * 0.5
+        
+        if side == -1:
+            if max_lx >= min_lx:
+                return rng.uniform(min_lx, max_lx), -1
+            elif max_rx >= min_rx:
+                return rng.uniform(min_rx, max_rx), 1
+            else:
+                return max_lx, -1
+        else:
+            if max_rx >= min_rx:
+                return rng.uniform(min_rx, max_rx), 1
+            elif max_lx >= min_lx:
+                return rng.uniform(min_lx, max_lx), -1
+            else:
+                return min_rx, 1
+
     def _generate_scenery(self):
         rng = random.Random(12345)
         
@@ -191,8 +218,8 @@ class RoadRenderer:
         y = 200.0
         while y < STAGE_TRACK_LENGTH - 800.0:
             y += rng.uniform(180.0, 320.0)
-            lx = rng.uniform(GAME_X + 25.0, GAME_X + 110.0)
-            rx = rng.uniform(GAME_X + GAME_W - 110.0, GAME_X + GAME_W - 25.0)
+            lx, _ = self._get_safe_verge_x(1, y, -1, self.tree_w, road_clearance=50.0, rng=rng)
+            rx, _ = self._get_safe_verge_x(1, y, 1, self.tree_w, road_clearance=32.0, rng=rng)
             self.stage1_trees.append((lx, y))
             self.stage1_trees.append((rx, y))
             
@@ -200,29 +227,45 @@ class RoadRenderer:
         y = 200.0
         while y < STAGE_TRACK_LENGTH - 800.0:
             y += rng.uniform(200.0, 360.0)
-            px = rng.uniform(GAME_X + 25.0, GAME_X + 110.0)
+            px, _ = self._get_safe_verge_x(3, y, -1, self.palm_w, road_clearance=32.0, rng=rng)
             self.stage3_palms.append((px, y))
             
         # Stage 4: Mountain Canyon Pines and Boulders
         y = 200.0
         while y < STAGE_TRACK_LENGTH - 800.0:
             y += rng.uniform(160.0, 290.0)
-            lx = rng.uniform(GAME_X + 18.0, GAME_X + 105.0)
-            rx = rng.uniform(GAME_X + GAME_W - 105.0, GAME_X + GAME_W - 18.0)
-            self.stage4_scenery.append({"pos": (lx, y), "is_pine": rng.random() > 0.45})
-            self.stage4_scenery.append({"pos": (rx, y), "is_pine": rng.random() > 0.45})
+            is_pine_l = rng.random() > 0.45
+            w_l = self.pine_w if is_pine_l else self.boulder_w
+            lx, _ = self._get_safe_verge_x(4, y, -1, w_l, road_clearance=32.0, rng=rng)
+            self.stage4_scenery.append({"pos": (lx, y), "is_pine": is_pine_l})
+            
+            is_pine_r = rng.random() > 0.45
+            w_r = self.pine_w if is_pine_r else self.boulder_w
+            rx, _ = self._get_safe_verge_x(4, y, 1, w_r, road_clearance=32.0, rng=rng)
+            self.stage4_scenery.append({"pos": (rx, y), "is_pine": is_pine_r})
 
         # Stage 5: Neon Metropolis Skyscrapers, Street Lamps, and Expressway Gantries
         y = 100.0
         while y < STAGE_TRACK_LENGTH - 400.0:
             bw = rng.uniform(85.0, 115.0)
             bh = rng.uniform(160.0, 280.0)
-            lx = GAME_X + rng.uniform(4.0, 18.0)
-            rx = (GAME_X + GAME_W) - bw - rng.uniform(4.0, 18.0)
+            rl, rr = self.get_road_edges(5, y)
+            
+            # Left building footprint (constrained outside left railing)
+            lx = GAME_X + rng.uniform(4.0, 14.0)
+            max_lw = max(40.0, rl - 26.0 - lx)
+            cur_bw_l = min(bw, max_lw)
+            
+            # Right building footprint (constrained outside right railing)
+            rx_right = (GAME_X + GAME_W) - rng.uniform(4.0, 14.0)
+            max_rw = max(40.0, rx_right - (rr + 26.0))
+            cur_bw_r = min(bw, max_rw)
+            rx = rx_right - cur_bw_r
             
             # Precompute window rows x cols
             rows = max(4, int(bh // 26))
-            cols = max(3, int(bw // 18))
+            cols_l = max(3, int(cur_bw_l // 18))
+            cols_r = max(3, int(cur_bw_r // 18))
             win_palette = [
                 (0, 225, 255),    # Neon Cyan
                 (255, 180, 20),   # Warm Amber
@@ -232,17 +275,17 @@ class RoadRenderer:
                 (28, 34, 48),     # Unlit
                 (28, 34, 48)      # Unlit
             ]
-            l_wins = [[rng.choice(win_palette) for _ in range(cols)] for _ in range(rows)]
-            r_wins = [[rng.choice(win_palette) for _ in range(cols)] for _ in range(rows)]
+            l_wins = [[rng.choice(win_palette) for _ in range(cols_l)] for _ in range(rows)]
+            r_wins = [[rng.choice(win_palette) for _ in range(cols_r)] for _ in range(rows)]
             
             self.stage5_buildings.append({
-                "x": lx, "y": y, "w": bw, "h": bh,
+                "x": lx, "y": y, "w": cur_bw_l, "h": bh,
                 "col": rng.choice([(18, 22, 34), (24, 28, 44), (14, 18, 30)]),
                 "windows": l_wins,
                 "beacon": rng.random() > 0.4
             })
             self.stage5_buildings.append({
-                "x": rx, "y": y, "w": bw, "h": bh,
+                "x": rx, "y": y, "w": cur_bw_r, "h": bh,
                 "col": rng.choice([(18, 22, 34), (24, 28, 44), (14, 18, 30)]),
                 "windows": r_wins,
                 "beacon": rng.random() > 0.4
@@ -265,10 +308,11 @@ class RoadRenderer:
         y = 200.0
         while y < STAGE_TRACK_LENGTH - 800.0:
             side = -1 if rng.random() < 0.5 else 1
-            offset_x = (GAME_X + 60.0) if side == -1 else (GAME_X + GAME_W - 60.0)
             is_pine = (rng.random() < 0.35)
+            obj_w = self.pine_w if is_pine else self.boulder_w
+            px, _ = self._get_safe_verge_x(6, y, side, obj_w, road_clearance=32.0, rng=rng)
             self.stage6_scenery.append({
-                "pos": (offset_x + rng.uniform(-25, 25), y),
+                "pos": (px, y),
                 "is_pine": is_pine
             })
             y += rng.uniform(85.0, 180.0)
@@ -276,11 +320,12 @@ class RoadRenderer:
         vy = 300.0
         while vy < STAGE_TRACK_LENGTH - 600.0:
             side = -1 if rng.random() < 0.5 else 1
-            vent_x = (GAME_X + 75.0) if side == -1 else (GAME_X + GAME_W - 75.0)
+            rad = rng.uniform(16, 28)
+            vx, _ = self._get_safe_verge_x(6, vy, side, rad * 2.0, road_clearance=24.0, rng=rng)
             self.stage6_magma_vents.append({
-                "x": vent_x + rng.uniform(-20, 20),
+                "x": vx,
                 "y": vy,
-                "radius": rng.uniform(16, 28)
+                "radius": rad
             })
             vy += rng.uniform(220.0, 380.0)
 
@@ -288,10 +333,11 @@ class RoadRenderer:
         y = 180.0
         while y < STAGE_TRACK_LENGTH - 800.0:
             side = -1 if rng.random() < 0.5 else 1
-            offset_x = (GAME_X + 60.0) if side == -1 else (GAME_X + GAME_W - 60.0)
             is_pine = (rng.random() < 0.5)
+            obj_w = self.pine_w if is_pine else self.boulder_w
+            px, _ = self._get_safe_verge_x(7, y, side, obj_w, road_clearance=32.0, rng=rng)
             self.stage7_scenery.append({
-                "pos": (offset_x + rng.uniform(-25, 25), y),
+                "pos": (px, y),
                 "is_pine": is_pine
             })
             y += rng.uniform(80.0, 170.0)
@@ -299,12 +345,13 @@ class RoadRenderer:
         cy = 240.0
         while cy < STAGE_TRACK_LENGTH - 600.0:
             side = -1 if rng.random() < 0.5 else 1
-            c_x = (GAME_X + 80.0) if side == -1 else (GAME_X + GAME_W - 80.0)
+            cw = rng.uniform(16, 26)
+            cx, _ = self._get_safe_verge_x(7, cy, side, cw, road_clearance=24.0, rng=rng)
             self.stage7_ice_crystals.append({
-                "x": c_x + rng.uniform(-25, 25),
+                "x": cx,
                 "y": cy,
                 "height": rng.uniform(30, 52),
-                "width": rng.uniform(16, 26)
+                "width": cw
             })
             cy += rng.uniform(160.0, 300.0)
 
@@ -312,10 +359,12 @@ class RoadRenderer:
         y = 160.0
         while y < STAGE_TRACK_LENGTH - 800.0:
             side = -1 if rng.random() < 0.5 else 1
-            offset_x = (GAME_X + 65.0) if side == -1 else (GAME_X + GAME_W - 65.0)
+            scale = rng.uniform(0.9, 1.25)
+            tree_dia = 70.0 * scale
+            tx, _ = self._get_safe_verge_x(8, y, side, tree_dia, road_clearance=36.0, rng=rng)
             self.stage8_sakura_trees.append({
-                "pos": (offset_x + rng.uniform(-25, 25), y),
-                "scale": rng.uniform(0.9, 1.25),
+                "pos": (tx, y),
+                "scale": scale,
                 "tone": rng.choice([0, 1, 2])
             })
             y += rng.uniform(70.0, 150.0)
@@ -323,9 +372,9 @@ class RoadRenderer:
         ly = 280.0
         while ly < STAGE_TRACK_LENGTH - 1000.0:
             side = -1 if rng.random() < 0.5 else 1
-            lx = (GAME_X + 90.0) if side == -1 else (GAME_X + GAME_W - 90.0)
+            lx, _ = self._get_safe_verge_x(8, ly, side, 36.0, road_clearance=26.0, rng=rng)
             self.stage8_lanterns.append({
-                "pos": (lx + rng.uniform(-15, 15), ly),
+                "pos": (lx, ly),
                 "h": rng.uniform(34, 46)
             })
             ly += rng.uniform(260.0, 420.0)
@@ -351,9 +400,9 @@ class RoadRenderer:
         y = 150.0
         while y < STAGE_TRACK_LENGTH - 800.0:
             side = -1 if rng.random() < 0.5 else 1
-            offset_x = (GAME_X + 60.0) if side == -1 else (GAME_X + GAME_W - 60.0)
+            cx, _ = self._get_safe_verge_x(9, y, side, 34.0, road_clearance=26.0, rng=rng)
             self.stage9_cacti.append({
-                "pos": (offset_x + rng.uniform(-20, 20), y),
+                "pos": (cx, y),
                 "h": rng.uniform(42, 66),
                 "arms": rng.choice([1, 2, 3]),
                 "arm_y": rng.uniform(0.35, 0.65)
@@ -363,10 +412,11 @@ class RoadRenderer:
         my = 260.0
         while my < STAGE_TRACK_LENGTH - 1000.0:
             side = -1 if rng.random() < 0.5 else 1
-            mx = (GAME_X + 75.0) if side == -1 else (GAME_X + GAME_W - 75.0)
+            mw = rng.uniform(60, 95)
+            mx, _ = self._get_safe_verge_x(9, my, side, mw, road_clearance=24.0, rng=rng)
             self.stage9_mesas.append({
-                "pos": (mx + rng.uniform(-20, 20), my),
-                "w": rng.uniform(60, 95),
+                "pos": (mx, my),
+                "w": mw,
                 "h": rng.uniform(36, 52),
                 "col_idx": rng.choice([0, 1, 2])
             })
@@ -386,7 +436,7 @@ class RoadRenderer:
         gy = 200.0
         while gy < STAGE_TRACK_LENGTH - 1000.0:
             side = -1 if rng.random() < 0.5 else 1
-            gx = (GAME_X + 50.0) if side == -1 else (GAME_X + GAME_W - 50.0)
+            gx, _ = self._get_safe_verge_x(10, gy, side, 75.0, road_clearance=28.0, rng=rng)
             self.stage10_grandstands.append({
                 "pos": (gx, gy),
                 "w": 75.0,
@@ -398,7 +448,7 @@ class RoadRenderer:
         sy = 300.0
         while sy < STAGE_TRACK_LENGTH - 1200.0:
             side = -1 if rng.random() < 0.5 else 1
-            sx = (GAME_X + 85.0) if side == -1 else (GAME_X + GAME_W - 85.0)
+            sx, _ = self._get_safe_verge_x(10, sy, side, 20.0, road_clearance=24.0, rng=rng)
             self.stage10_searchlights.append({
                 "pos": (sx, sy),
                 "phase": rng.uniform(0.0, 6.28),
@@ -419,8 +469,8 @@ class RoadRenderer:
 
         cy = 200.0
         while cy < STAGE_TRACK_LENGTH - 600.0:
-            lx = rng.uniform(GAME_X + 25.0, GAME_X + 105.0)
-            rx = rng.uniform(GAME_X + GAME_W - 105.0, GAME_X + GAME_W - 25.0)
+            lx, _ = self._get_safe_verge_x(11, cy, -1, 24.0, road_clearance=24.0, rng=rng)
+            rx, _ = self._get_safe_verge_x(11, cy, 1, 24.0, road_clearance=24.0, rng=rng)
             self.stage11_crystals.append({"pos": (lx, cy), "color": rng.choice([(0, 235, 255), (255, 120, 240), (255, 215, 0), (120, 255, 180)])})
             self.stage11_crystals.append({"pos": (rx, cy), "color": rng.choice([(0, 235, 255), (255, 120, 240), (255, 215, 0), (120, 255, 180)])})
             cy += rng.uniform(220.0, 360.0)
@@ -1092,6 +1142,12 @@ class RoadRenderer:
         for tx, ty in self.stage1_trees:
             scr_y = ply_y - (ty - self.track_distance)
             if -120 <= scr_y <= scr_h + 120 and self.sprite_tree:
+                r_l, r_r = self.get_road_edges(1, ty)
+                half_w = self.tree_w // 2
+                if tx < (r_l + r_r) * 0.5:
+                    tx = min(tx, r_l - 48.0 - half_w)
+                else:
+                    tx = max(tx, r_r + 24.0 + half_w)
                 # 3D Drop Shadow on grass (anchored at trunk base)
                 surface.blit(self.shadow_tree, (tx - 24, scr_y - 14))
                 # 3D Tree sprite
@@ -1255,6 +1311,12 @@ class RoadRenderer:
         for px, py in self.stage3_palms:
             scr_y = ply_y - (py - self.track_distance)
             if -120 <= scr_y <= scr_h + 120 and self.sprite_palm:
+                r_l, r_r = self.get_road_edges(3, py)
+                margin = 24.0 + self.palm_w // 2
+                if px < (r_l + r_r) * 0.5:
+                    px = min(px, r_l - margin)
+                else:
+                    px = max(px, r_r + margin)
                 # 3D Drop Shadow on beach sand
                 surface.blit(self.shadow_palm, (px - 22, scr_y - 14))
                 # 3D Palm tree sprite
@@ -1330,6 +1392,13 @@ class RoadRenderer:
             is_pine = item["is_pine"]
             scr_y = ply_y - (py - self.track_distance)
             if -100 <= scr_y <= scr_h + 100:
+                r_l, r_r = self.get_road_edges(4, py)
+                half_w = self.pine_w // 2 if is_pine else self.boulder_w // 2
+                margin = 24.0 + half_w
+                if px < (r_l + r_r) * 0.5:
+                    px = min(px, r_l - margin)
+                else:
+                    px = max(px, r_r + margin)
                 if is_pine and self.sprite_pine:
                     # Tiered conical foliage shadow on rocky ground
                     surface.blit(self.shadow_pine, (px - 19, scr_y - 20))
@@ -1503,6 +1572,12 @@ class RoadRenderer:
             vx, vy, vr = vent["x"], vent["y"], vent["radius"]
             scr_y = ply_y - (vy - self.track_distance)
             if -40 <= scr_y <= scr_h + 40:
+                r_l, r_r = self.get_road_edges(6, vy)
+                margin = 22.0 + vr
+                if vx < (r_l + r_r) * 0.5:
+                    vx = min(vx, r_l - margin)
+                else:
+                    vx = max(vx, r_r + margin)
                 pygame.draw.circle(surface, (180, 40, 10), (int(vx), int(scr_y)), int(vr))
                 pygame.draw.circle(surface, (255, 95, 20), (int(vx), int(scr_y)), int(vr * 0.7))
                 pygame.draw.circle(surface, (255, 200, 50), (int(vx), int(scr_y)), int(vr * 0.4 * (0.8 + pulse * 0.4)))
@@ -1513,6 +1588,13 @@ class RoadRenderer:
             is_pine = item["is_pine"]
             scr_y = ply_y - (py - self.track_distance)
             if -100 <= scr_y <= scr_h + 100:
+                r_l, r_r = self.get_road_edges(6, py)
+                half_w = self.pine_w // 2 if is_pine else self.boulder_w // 2
+                margin = 24.0 + half_w
+                if px < (r_l + r_r) * 0.5:
+                    px = min(px, r_l - margin)
+                else:
+                    px = max(px, r_r + margin)
                 if is_pine and self.sprite_pine:
                     # Conical shadow on volcanic basalt
                     surface.blit(self.shadow_pine, (px - 19, scr_y - 20))
@@ -1582,6 +1664,12 @@ class RoadRenderer:
             ch, cw = crystal["height"], crystal["width"]
             scr_y = ply_y - (cy - self.track_distance)
             if -60 <= scr_y <= scr_h + 60:
+                r_l, r_r = self.get_road_edges(7, cy)
+                margin = 20.0 + cw * 0.5
+                if cx < (r_l + r_r) * 0.5:
+                    cx = min(cx, r_l - margin)
+                else:
+                    cx = max(cx, r_r + margin)
                 # Sparkling shimmer factor
                 shimmer = 0.5 + 0.5 * math.sin(now * 4.0 + cy * 0.05)
                 # Outer diamond ice spire
@@ -1624,6 +1712,13 @@ class RoadRenderer:
             is_pine = item["is_pine"]
             scr_y = ply_y - (py - self.track_distance)
             if -100 <= scr_y <= scr_h + 100:
+                r_l, r_r = self.get_road_edges(7, py)
+                half_w = self.pine_w // 2 if is_pine else self.boulder_w // 2
+                margin = 24.0 + half_w
+                if px < (r_l + r_r) * 0.5:
+                    px = min(px, r_l - margin)
+                else:
+                    px = max(px, r_r + margin)
                 if is_pine and self.sprite_pine:
                     # Blue-tinted soft snow shadow
                     surface.blit(self.shadow_pine, (px - 19, scr_y - 20))
@@ -1722,6 +1817,12 @@ class RoadRenderer:
             lh = lantern["h"]
             scr_y = ply_y - (ly - self.track_distance)
             if -60 <= scr_y <= scr_h + 60:
+                r_l, r_r = self.get_road_edges(8, ly)
+                margin = 32.0
+                if lx < (r_l + r_r) * 0.5:
+                    lx = min(lx, r_l - margin)
+                else:
+                    lx = max(lx, r_r + margin)
                 # 3D Stone Lantern Drop Shadow
                 pygame.draw.ellipse(surface, (0, 0, 0, 115), (int(lx - 12), int(scr_y - 6), 26, 12))
                 pygame.draw.ellipse(surface, (0, 0, 0, 65), (int(lx - 4), int(scr_y - 2), 30, 16))
@@ -1758,6 +1859,12 @@ class RoadRenderer:
             tone = item["tone"]
             scr_y = ply_y - (ty - self.track_distance)
             if -120 <= scr_y <= scr_h + 120:
+                r_l, r_r = self.get_road_edges(8, ty)
+                margin = 24.0 + 35.0 * scale
+                if tx < (r_l + r_r) * 0.5:
+                    tx = min(tx, r_l - margin)
+                else:
+                    tx = max(tx, r_r + margin)
                 # 3D Drop Shadow: Multi-lobed blossom canopy shadow on grass
                 sh_w = int(88 * scale)
                 sh_h = int(50 * scale)
@@ -1897,6 +2004,12 @@ class RoadRenderer:
             col_idx = mesa["col_idx"]
             scr_y = ply_y - (my - self.track_distance)
             if -80 <= scr_y <= scr_h + 80:
+                r_l, r_r = self.get_road_edges(9, my)
+                margin = 24.0 + mw * 0.5
+                if mx < (r_l + r_r) * 0.5:
+                    mx = min(mx, r_l - margin)
+                else:
+                    mx = max(mx, r_r + margin)
                 col_base = (145, 62, 38) if col_idx == 0 else ((160, 68, 42) if col_idx == 1 else (135, 55, 34))
                 col_top = (175, 78, 48) if col_idx == 0 else ((190, 85, 52) if col_idx == 1 else (165, 70, 42))
                 # 3D Mesa Ground Shadow
@@ -1932,6 +2045,12 @@ class RoadRenderer:
             arm_y = cactus["arm_y"]
             scr_y = ply_y - (cy - self.track_distance)
             if -90 <= scr_y <= scr_h + 90:
+                r_l, r_r = self.get_road_edges(9, cy)
+                margin = 32.0
+                if cx < (r_l + r_r) * 0.5:
+                    cx = min(cx, r_l - margin)
+                else:
+                    cx = max(cx, r_r + margin)
                 # 3D Saguaro Cactus Drop Shadow on desert sand
                 sh_surf = pygame.Surface((int(ch + 30), int(ch * 0.7)), pygame.SRCALPHA)
                 pygame.draw.line(sh_surf, (0, 0, 0, 80), (8, 8), (int(ch * 0.75), int(ch * 0.42)), 6)
@@ -1988,17 +2107,22 @@ class RoadRenderer:
             pygame.draw.rect(surface, curb_col, (r_left - 8, y, 8, slice_h))
             pygame.draw.rect(surface, curb_col, (r_right, y, 8, slice_h))
             
-            # Glowing amber canyon reflectors every 40m
+            # Soft Sunset Golden Reflectors every 40m
             if int(world_y) % 40 < 6:
-                pygame.draw.rect(surface, (255, 190, 50), (r_left - 12, y + 1, 4, 4))
-                pygame.draw.rect(surface, (255, 190, 50), (r_right + 8, y + 1, 4, 4))
+                pygame.draw.rect(surface, (255, 205, 75), (r_left - 12, y + 1, 4, 4))
+                pygame.draw.rect(surface, (255, 205, 75), (r_right + 8, y + 1, 4, 4))
 
-        # 6. Drifting Tumbleweeds
-        for weed in self.stage9_tumbleweeds:
-            px = GAME_X + (weed["rx"] + self.frames * (weed["speed_x"] / 60.0)) % GAME_W
-            py = (weed["ry"] + self.frames * (weed["speed_y"] / 60.0) + self.track_distance * 0.20) % scr_h
-            rad = weed["rad"]
-            pygame.draw.circle(surface, (155, 115, 75), (int(px), int(py)), int(rad), 2)
+        # 6. Dynamic Rolling Tumbleweeds (Drifting across desert road)
+        for tw in self.stage9_tumbleweeds:
+            px = GAME_X + (tw["rx"] + self.frames * (tw["speed_x"] / 60.0)) % GAME_W
+            py = (tw["ry"] + self.frames * (tw["speed_y"] / 60.0) + self.track_distance * 0.15) % scr_h
+            rad = tw["rad"]
+            rot = tw["rot"] + self.frames * 0.05
+            # Tumbleweed shadow
+            pygame.draw.ellipse(surface, (0, 0, 0, 70), (int(px - rad * 0.8), int(py + rad * 0.7), int(rad * 1.6), int(rad * 0.7)))
+            # Tumbleweed branches
+            pygame.draw.circle(surface, (175, 130, 85), (int(px), int(py)), int(rad))
+            pygame.draw.circle(surface, (150, 110, 70), (int(px), int(py)), int(rad * 0.75), 2)
             pygame.draw.line(surface, (135, 95, 60), (px - rad * 0.7, py), (px + rad * 0.7, py), 2)
             pygame.draw.line(surface, (135, 95, 60), (px, py - rad * 0.7), (px, py + rad * 0.7), 2)
 
@@ -2062,6 +2186,12 @@ class RoadRenderer:
             b_col = stand["banner_col"]
             scr_y = ply_y - (gy - self.track_distance)
             if -80 <= scr_y <= scr_h + 80:
+                r_l, r_r = self.get_road_edges(10, gy)
+                margin = 24.0 + gw * 0.5
+                if gx < (r_l + r_r) * 0.5:
+                    gx = min(gx, r_l - margin)
+                else:
+                    gx = max(gx, r_r + margin)
                 # 3D Grandstand Ground Shadow on turf
                 pygame.draw.ellipse(surface, (0, 0, 0, 110), (int(gx - gw * 0.45), int(scr_y - 4), int(gw * 0.9), 12))
                 pygame.draw.polygon(surface, (0, 0, 0, 75), [
@@ -2089,6 +2219,12 @@ class RoadRenderer:
             spd = light["sweep_speed"]
             scr_y = ply_y - (sy - self.track_distance)
             if -100 <= scr_y <= scr_h + 100:
+                r_l, r_r = self.get_road_edges(10, sy)
+                margin = 26.0
+                if sx < (r_l + r_r) * 0.5:
+                    sx = min(sx, r_l - margin)
+                else:
+                    sx = max(sx, r_r + margin)
                 # 3D Searchlight Base Drop Shadow
                 pygame.draw.ellipse(surface, (0, 0, 0, 120), (int(sx - 10), int(scr_y - 4), 20, 10))
                 # Searchlight base unit
@@ -2212,6 +2348,12 @@ class RoadRenderer:
             ccol = cry["color"]
             scr_y = ply_y - (cy - self.track_distance)
             if -80 <= scr_y <= scr_h + 80:
+                r_l, r_r = self.get_road_edges(11, cy)
+                margin = 24.0
+                if cx < (r_l + r_r) * 0.5:
+                    cx = min(cx, r_l - margin)
+                else:
+                    cx = max(cx, r_r + margin)
                 # 3D Drop shadow offset (+12, +8) down-right
                 pygame.draw.ellipse(surface, (0, 0, 0, 120), (int(cx - 10 + 10), int(scr_y - 4 + 8), 24, 12))
                 pygame.draw.ellipse(surface, (0, 0, 0, 140), (int(cx - 12), int(scr_y - 4), 24, 10))
