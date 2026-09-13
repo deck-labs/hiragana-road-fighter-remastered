@@ -1197,7 +1197,12 @@ class GameEngine:
                     "ti": ["ti", "chi"],
                     "chi": ["ti", "chi"],
                     "fu": ["fu", "hu"],
-                    "hu": ["fu", "hu"]
+                    "hu": ["fu", "hu"],
+                    "ji": ["ji", "zi", "di", "dji"],
+                    "zi": ["zi", "ji"],
+                    "di": ["di", "ji", "dji"],
+                    "zu": ["zu", "du", "dzu"],
+                    "du": ["du", "zu", "dzu"]
                 }
                 is_match = (car_ro == target_ro) or (target_ro in alt_matches and car_ro in alt_matches[target_ro])
                 

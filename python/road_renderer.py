@@ -1111,9 +1111,8 @@ class RoadRenderer:
     def _render_stage1(self, surface: pygame.Surface):
         scr_h = self.screen_height
         ply_y = self.player_screen_y
-        # Grass verges on left & right
-        self.draw_tiled_texture(surface, self.tex_grass, (GAME_X, 0, ROAD_MARGIN, scr_h))
-        self.draw_tiled_texture(surface, self.tex_grass, (GAME_X + GAME_W - ROAD_MARGIN, 0, ROAD_MARGIN, scr_h))
+        # Grass terrain across entire viewport
+        self.draw_tiled_texture(surface, self.tex_grass, (GAME_X, 0, GAME_W, scr_h))
         
         # Asphalt
         road_left = GAME_X + ROAD_MARGIN
@@ -1325,9 +1324,8 @@ class RoadRenderer:
     def _render_stage4(self, surface: pygame.Surface):
         scr_h = self.screen_height
         ply_y = self.player_screen_y
-        # Base rocky ground on shoulders
-        self.draw_tiled_texture(surface, self.tex_rock_ground, (GAME_X, 0, ROAD_MARGIN + 30.0, scr_h))
-        self.draw_tiled_texture(surface, self.tex_rock_ground, (GAME_X + GAME_W - ROAD_MARGIN - 30.0, 0, ROAD_MARGIN + 30.0, scr_h))
+        # Base rocky ground across entire viewport
+        self.draw_tiled_texture(surface, self.tex_rock_ground, (GAME_X, 0, GAME_W, scr_h))
         
         slice_h = 6
         for y in range(0, scr_h, slice_h):
@@ -1416,15 +1414,13 @@ class RoadRenderer:
         # 1. Midnight / Twilight Night Sky Base
         pygame.draw.rect(surface, (10, 14, 24), (GAME_X, 0, GAME_W, scr_h))
         
-        # 2. Elevated Expressway Concrete Deck on Verges
-        self.draw_tiled_texture(surface, self.tex_concrete, (GAME_X, 0, ROAD_MARGIN, scr_h))
-        self.draw_tiled_texture(surface, self.tex_concrete, (GAME_X + GAME_W - ROAD_MARGIN, 0, ROAD_MARGIN, scr_h))
+        # 2. Elevated Expressway Concrete Deck across Entire Viewport
+        self.draw_tiled_texture(surface, self.tex_concrete, (GAME_X, 0, GAME_W, scr_h))
         
         # Nighttime atmospheric shading on concrete
-        night_shading = pygame.Surface((int(ROAD_MARGIN), scr_h), pygame.SRCALPHA)
+        night_shading = pygame.Surface((int(GAME_W), scr_h), pygame.SRCALPHA)
         night_shading.fill((10, 14, 26, 185))
         surface.blit(night_shading, (GAME_X, 0))
-        surface.blit(night_shading, (GAME_X + GAME_W - ROAD_MARGIN, 0))
         
         # 3. Skyscraper Silhouettes in Background Verges
         for b in self.stage5_buildings:
@@ -1555,15 +1551,13 @@ class RoadRenderer:
         # 1. Dark Volcanic Twilight Sky & Basalt Bedrock Base
         pygame.draw.rect(surface, (18, 12, 16), (GAME_X, 0, GAME_W, scr_h))
         
-        # 2. Volcanic Rock Ground on Verges
-        self.draw_tiled_texture(surface, self.tex_rock_ground, (GAME_X, 0, ROAD_MARGIN, scr_h))
-        self.draw_tiled_texture(surface, self.tex_rock_ground, (GAME_X + GAME_W - ROAD_MARGIN, 0, ROAD_MARGIN, scr_h))
+        # 2. Volcanic Rock Ground across Entire Terrain
+        self.draw_tiled_texture(surface, self.tex_rock_ground, (GAME_X, 0, GAME_W, scr_h))
         
-        # Dark volcanic ash shading overlay
-        ash_overlay = pygame.Surface((int(ROAD_MARGIN), scr_h), pygame.SRCALPHA)
+        # Dark volcanic ash shading overlay across entire terrain
+        ash_overlay = pygame.Surface((int(GAME_W), scr_h), pygame.SRCALPHA)
         ash_overlay.fill((25, 12, 16, 175))
         surface.blit(ash_overlay, (GAME_X, 0))
-        surface.blit(ash_overlay, (GAME_X + GAME_W - ROAD_MARGIN, 0))
         
         # 3. Glowing Magma Vents / Caldera Fissures in the verges
         import time
@@ -1646,15 +1640,13 @@ class RoadRenderer:
         # 1. Polar Twilight Sky & Glacial Bedrock Base
         pygame.draw.rect(surface, (10, 16, 28), (GAME_X, 0, GAME_W, scr_h))
         
-        # 2. Frozen Rock Ground on Verges
-        self.draw_tiled_texture(surface, self.tex_rock_ground, (GAME_X, 0, ROAD_MARGIN, scr_h))
-        self.draw_tiled_texture(surface, self.tex_rock_ground, (GAME_X + GAME_W - ROAD_MARGIN, 0, ROAD_MARGIN, scr_h))
+        # 2. Frozen Rock Ground across Entire Terrain
+        self.draw_tiled_texture(surface, self.tex_rock_ground, (GAME_X, 0, GAME_W, scr_h))
         
-        # Frost & Snowfield overlay (sub-zero glacial white-cyan tint)
-        frost_overlay = pygame.Surface((int(ROAD_MARGIN), scr_h), pygame.SRCALPHA)
+        # Frost & Snowfield overlay (sub-zero glacial white-cyan tint) across entire terrain
+        frost_overlay = pygame.Surface((int(GAME_W), scr_h), pygame.SRCALPHA)
         frost_overlay.fill((210, 235, 255, 195))
         surface.blit(frost_overlay, (GAME_X, 0))
-        surface.blit(frost_overlay, (GAME_X + GAME_W - ROAD_MARGIN, 0))
         
         # 3. Crystalline Ice Spires / Frozen Formations in the verges
         import time
@@ -1799,15 +1791,13 @@ class RoadRenderer:
         # 1. Spring Twilight Sky (deep violet-rose gradient base)
         pygame.draw.rect(surface, (28, 18, 38), (GAME_X, 0, GAME_W, scr_h))
         
-        # 2. Fresh Spring Turf Grass on Verges
-        self.draw_tiled_texture(surface, self.tex_grass, (GAME_X, 0, ROAD_MARGIN, scr_h))
-        self.draw_tiled_texture(surface, self.tex_grass, (GAME_X + GAME_W - ROAD_MARGIN, 0, ROAD_MARGIN, scr_h))
+        # 2. Fresh Spring Turf Grass across Entire Terrain
+        self.draw_tiled_texture(surface, self.tex_grass, (GAME_X, 0, GAME_W, scr_h))
         
-        # Twilight Spring Rose-tint overlay on verges
-        verge_overlay = pygame.Surface((int(ROAD_MARGIN), scr_h), pygame.SRCALPHA)
+        # Twilight Spring Rose-tint overlay across entire terrain
+        verge_overlay = pygame.Surface((int(GAME_W), scr_h), pygame.SRCALPHA)
         verge_overlay.fill((55, 20, 42, 60))
         surface.blit(verge_overlay, (GAME_X, 0))
-        surface.blit(verge_overlay, (GAME_X + GAME_W - ROAD_MARGIN, 0))
         
         # 3. Traditional Japanese Stone Lanterns (ishidōrō) along roadside
         import time
@@ -1987,15 +1977,13 @@ class RoadRenderer:
         # 1. Sunset Canyon Dusk Sky (rich crimson-amber twilight base)
         pygame.draw.rect(surface, (54, 22, 26), (GAME_X, 0, GAME_W, scr_h))
         
-        # 2. Sandstone Desert Verges
-        self.draw_tiled_texture(surface, self.tex_rock_ground, (GAME_X, 0, ROAD_MARGIN, scr_h))
-        self.draw_tiled_texture(surface, self.tex_rock_ground, (GAME_X + GAME_W - ROAD_MARGIN, 0, ROAD_MARGIN, scr_h))
+        # 2. Sandstone Desert Terrain across Entire Viewport
+        self.draw_tiled_texture(surface, self.tex_rock_ground, (GAME_X, 0, GAME_W, scr_h))
         
-        # Warm sunset amber wash overlay on rock verges
-        sand_overlay = pygame.Surface((int(ROAD_MARGIN), scr_h), pygame.SRCALPHA)
+        # Warm sunset amber wash overlay across entire terrain
+        sand_overlay = pygame.Surface((int(GAME_W), scr_h), pygame.SRCALPHA)
         sand_overlay.fill((190, 75, 35, 140))
         surface.blit(sand_overlay, (GAME_X, 0))
-        surface.blit(sand_overlay, (GAME_X + GAME_W - ROAD_MARGIN, 0))
         
         # 3. Distant Sandstone Mesas & Buttes
         for mesa in self.stage9_mesas:
@@ -2169,15 +2157,13 @@ class RoadRenderer:
         ]
         pygame.draw.polygon(surface, (248, 252, 255), pts_snow)
         
-        # 2. Championship Manicured Racing Turf Verges
-        self.draw_tiled_texture(surface, self.tex_grass, (GAME_X, 0, ROAD_MARGIN, scr_h))
-        self.draw_tiled_texture(surface, self.tex_grass, (GAME_X + GAME_W - ROAD_MARGIN, 0, ROAD_MARGIN, scr_h))
+        # 2. Championship Manicured Racing Turf across Entire Viewport (below horizon)
+        self.draw_tiled_texture(surface, self.tex_grass, (GAME_X, horizon_h, GAME_W, scr_h - horizon_h))
         
-        # Manicured emerald race verge overlay
-        turf_overlay = pygame.Surface((int(ROAD_MARGIN), scr_h), pygame.SRCALPHA)
+        # Manicured emerald race verge overlay across entire terrain
+        turf_overlay = pygame.Surface((int(GAME_W), scr_h - horizon_h), pygame.SRCALPHA)
         turf_overlay.fill((20, 75, 35, 75))
-        surface.blit(turf_overlay, (GAME_X, 0))
-        surface.blit(turf_overlay, (GAME_X + GAME_W - ROAD_MARGIN, 0))
+        surface.blit(turf_overlay, (GAME_X, horizon_h))
 
         # 3. Circuit Grandstands & Cheering Spectators
         for stand in self.stage10_grandstands:

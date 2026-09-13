@@ -9,7 +9,7 @@ import pygame
 from game_config import (
     SCREEN_WIDTH, SCREEN_HEIGHT, TOTAL_STAGES, STAGE_NAMES, STAGE_ENV_NOTES,
     COLOR_PANEL_BG, COLOR_PANEL_BORDER, COLOR_GOLD, COLOR_CYAN, COLOR_WHITE,
-    GAME_VERSION, get_asset_path
+    GAME_VERSION, TOTAL_GAUNTLET_KANA, get_asset_path
 )
 
 class HudRenderer:
@@ -174,7 +174,7 @@ class HudRenderer:
         
         # Header text
         if stage == 11:
-            txt_tgt_h = self.font_sub.render("★ 46-KANA GAUNTLET TARGET ★", True, COLOR_GOLD)
+            txt_tgt_h = self.font_sub.render("★ ALL-KANA & DAKUTEN GAUNTLET TARGET ★", True, COLOR_GOLD)
         else:
             txt_tgt_h = self.font_sub.render("TARGET KANA INTERCEPT TARGET", True, COLOR_CYAN)
         surface.blit(txt_tgt_h, (rx + 20, box_y + 12))
@@ -194,7 +194,7 @@ class HudRenderer:
         
         # Subtitle instruction
         if stage == 11:
-            txt_sub = self.font_caption.render("MATCH TRAFFIC FOR ALL 46 KANA! (+100 PTS / +35% FUEL)", True, (255, 240, 180))
+            txt_sub = self.font_caption.render(f"MATCH TRAFFIC FOR ALL {TOTAL_GAUNTLET_KANA} KANA! (+100 PTS / +35% FUEL)", True, (255, 240, 180))
         else:
             txt_sub = self.font_caption.render("MATCH TRAFFIC ROOF ROMAJI TO REFUEL +30%", True, (230, 242, 255))
         sub_r = txt_sub.get_rect(center=(rx + rw // 2, box_y + 220))
@@ -292,26 +292,12 @@ class HudRenderer:
         txt_sc_val = self.font_speed.render(f"{int(score):06d}", True, COLOR_GOLD)
         surface.blit(txt_sc_val, (rx + 24, score_y + 45))
 
-        # Flawless Status or Gauntlet Tracker Badge
+        # Stage 11 Gauntlet Progress Badge
         if stage == 11:
             badge_rect = pygame.Rect(rx + rw - 310, score_y + 36, 290, 48)
             pygame.draw.rect(surface, (24, 16, 48), badge_rect, border_radius=6)
             pygame.draw.rect(surface, (255, 215, 0), badge_rect, 2, border_radius=6)
-            txt_b1 = self.font_sub.render(f"GAUNTLET: {gauntlet_count} / 46", True, (255, 220, 50))
-            surface.blit(txt_b1, txt_b1.get_rect(center=badge_rect.center))
-        elif flawless_active:
-            badge_rect = pygame.Rect(rx + rw - 310, score_y + 36, 290, 48)
-            pygame.draw.rect(surface, (10, 32, 24), badge_rect, border_radius=6)
-            pygame.draw.rect(surface, (46, 224, 125), badge_rect, 2, border_radius=6)
-            txt_b1 = self.font_caption.render("★ NO-DAMAGE RUN ACTIVE ★", True, (46, 224, 125))
-            txt_b2 = self.font_tiny.render("SECRET TRIAL ELIGIBLE", True, (170, 255, 210))
-            surface.blit(txt_b1, txt_b1.get_rect(center=(badge_rect.centerx, badge_rect.centery - 9)))
-            surface.blit(txt_b2, txt_b2.get_rect(center=(badge_rect.centerx, badge_rect.centery + 10)))
-        elif damage_taken:
-            badge_rect = pygame.Rect(rx + rw - 310, score_y + 36, 290, 48)
-            pygame.draw.rect(surface, (28, 14, 14), badge_rect, border_radius=6)
-            pygame.draw.rect(surface, (140, 50, 50), badge_rect, 1, border_radius=6)
-            txt_b1 = self.font_caption.render("⚠️ DAMAGE RECORDED", True, (210, 90, 90))
+            txt_b1 = self.font_sub.render(f"GAUNTLET: {gauntlet_count} / {TOTAL_GAUNTLET_KANA}", True, (255, 220, 50))
             surface.blit(txt_b1, txt_b1.get_rect(center=badge_rect.center))
         
         env_note = STAGE_ENV_NOTES.get(stage, "")
@@ -327,7 +313,7 @@ class HudRenderer:
         txt_c_h = self.font_sub.render("FLIGHT CONTROLS & COMMANDS", True, COLOR_CYAN)
         surface.blit(txt_c_h, (rx + 20, ctrl_y + 14))
         
-        goal_msg = "BONUS GOAL: CONQUER ALL 46 HIRAGANA!" if stage == 11 else f"TARGET GOAL: 36,000 M // {TOTAL_STAGES} TOTAL STAGES"
+        goal_msg = f"BONUS GOAL: CONQUER ALL {TOTAL_GAUNTLET_KANA} HIRAGANA & DAKUTEN!" if stage == 11 else f"TARGET GOAL: 36,000 M // {TOTAL_STAGES} TOTAL STAGES"
         lines = [
             "STEER: [A / D] / [LEFT / RIGHT] / D-PAD / ANALOG STICK",
             "TURBO BOOST: [W] / [UP] / [SPACE] / GAMEPAD [A] / [RT]",
@@ -623,7 +609,7 @@ class HudRenderer:
             txt_h = self.font_menu.render("★ ULTIMATE HIRAGANA MASTER! ★", True, COLOR_GOLD)
             surface.blit(txt_h, txt_h.get_rect(center=(cx, cy - 65)))
             
-            txt_m = self.font_sub.render("ALL 46 HIRAGANA MASTERED ON A FLAWLESS RUN!", True, (0, 240, 255))
+            txt_m = self.font_sub.render(f"ALL {TOTAL_GAUNTLET_KANA} HIRAGANA & DAKUTEN MASTERED!", True, (0, 240, 255))
             surface.blit(txt_m, txt_m.get_rect(center=(cx, cy - 15)))
 
             txt_s = self.font_caption.render("STAGE 11 SECRET TRIAL CONQUERED // PERFECT VICTORY", True, (255, 235, 130))
@@ -647,7 +633,7 @@ class HudRenderer:
             txt_m = self.font_sub.render("ZERO DAMAGE TAKEN ACROSS ALL 10 STAGES!", True, COLOR_GOLD)
             surface.blit(txt_m, txt_m.get_rect(center=(cx, cy - 15)))
 
-            txt_s = self.font_caption.render("SECRET FINAL STAGE UNLOCKED: ALL 46-HIRAGANA MASTERY GAUNTLET", True, (0, 240, 255))
+            txt_s = self.font_caption.render(f"SECRET FINAL STAGE UNLOCKED: ALL {TOTAL_GAUNTLET_KANA}-KANA MASTERY GAUNTLET", True, (0, 240, 255))
             surface.blit(txt_s, txt_s.get_rect(center=(cx, cy + 30)))
             
             txt_f = self.font_caption.render("PRESS [SPACE] / [ENTER] / GAMEPAD [A] TO ENTER SECRET TRIAL", True, COLOR_WHITE)

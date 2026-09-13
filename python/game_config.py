@@ -21,7 +21,7 @@ ROAD_WIDTH = GAME_W - (ROAD_MARGIN * 2.0)  # 640.0 px wide 4-lane highway
 PLAYER_SCREEN_Y = 840.0
 
 # Version & Release Metadata
-GAME_VERSION = "1.0.5"
+GAME_VERSION = "1.0.6"
 GITHUB_REPO = "deck-labs/hiragana-road-fighter-remastered"
 VERSION_CHECK_URL = "https://raw.githubusercontent.com/deck-labs/hiragana-road-fighter-remastered/main/version.json"
 RELEASES_API_URL = "https://api.github.com/repos/deck-labs/hiragana-road-fighter-remastered/releases/latest"
@@ -70,7 +70,7 @@ STAGE_ENV_NOTES = {
     8: "CHERRY BLOSSOM BOULEVARD // SPRING DRIFT // SAKURA PETALS",
     9: "RED ROCK CANYON // DUSK MESAS // HIGH-SPEED GORGE SWEEPS",
     10: "FUJI SPEEDWAY // GRAND CHAMPIONSHIP // GOLDEN APEX",
-    11: "SECRET BONUS STAGE // ALL 46 HIRAGANA GAUNTLET // COSMIC AURORA"
+    11: "SECRET BONUS STAGE // ALL 71 HIRAGANA & DAKUTEN GAUNTLET // COSMIC AURORA"
 }
 
 # Complete 46 Core Hiragana Syllabary for Mastery Gauntlet
@@ -133,6 +133,48 @@ ALL_46_HIRAGANA = [
     {"kana": "ん", "romaji": "n"}
 ]
 
+# 20 Voiced Hiragana with Dakuten (Ten-Ten ゛)
+DAKUTEN_HIRAGANA = [
+    # G-line (Ka + Ten-Ten)
+    {"kana": "が", "romaji": "ga"},
+    {"kana": "ぎ", "romaji": "gi"},
+    {"kana": "ぐ", "romaji": "gu"},
+    {"kana": "げ", "romaji": "ge"},
+    {"kana": "ご", "romaji": "go"},
+    # Z-line (Sa + Ten-Ten)
+    {"kana": "ざ", "romaji": "za"},
+    {"kana": "じ", "romaji": "ji"},
+    {"kana": "ず", "romaji": "zu"},
+    {"kana": "ぜ", "romaji": "ze"},
+    {"kana": "ぞ", "romaji": "zo"},
+    # D-line (Ta + Ten-Ten)
+    {"kana": "だ", "romaji": "da"},
+    {"kana": "ぢ", "romaji": "di"},
+    {"kana": "づ", "romaji": "du"},
+    {"kana": "で", "romaji": "de"},
+    {"kana": "ど", "romaji": "do"},
+    # B-line (Ha + Ten-Ten)
+    {"kana": "ば", "romaji": "ba"},
+    {"kana": "び", "romaji": "bi"},
+    {"kana": "ぶ", "romaji": "bu"},
+    {"kana": "べ", "romaji": "be"},
+    {"kana": "ぼ", "romaji": "bo"},
+]
+
+# 5 Plosive Hiragana with Handakuten (Maru ゜)
+HANDAKUTEN_HIRAGANA = [
+    # P-line (Ha + Maru)
+    {"kana": "ぱ", "romaji": "pa"},
+    {"kana": "ぴ", "romaji": "pi"},
+    {"kana": "ぷ", "romaji": "pu"},
+    {"kana": "ぺ", "romaji": "pe"},
+    {"kana": "ぽ", "romaji": "po"},
+]
+
+# Complete 71 Hiragana Syllabary for Mastery Gauntlet (46 Core + 20 Dakuten + 5 Handakuten)
+ALL_71_HIRAGANA = ALL_46_HIRAGANA + DAKUTEN_HIRAGANA + HANDAKUTEN_HIRAGANA
+TOTAL_GAUNTLET_KANA = len(ALL_71_HIRAGANA)  # 71
+
 STAGE_KANA = {
     1: [
         {"kana": "あ", "romaji": "a"},
@@ -142,27 +184,46 @@ STAGE_KANA = {
         {"kana": "お", "romaji": "o"}
     ],
     2: [
+        # Ka-line & Ga-line (Dakuten / Ten-Ten)
         {"kana": "か", "romaji": "ka"},
         {"kana": "き", "romaji": "ki"},
         {"kana": "く", "romaji": "ku"},
         {"kana": "け", "romaji": "ke"},
-        {"kana": "こ", "romaji": "ko"}
+        {"kana": "こ", "romaji": "ko"},
+        {"kana": "が", "romaji": "ga"},
+        {"kana": "ぎ", "romaji": "gi"},
+        {"kana": "ぐ", "romaji": "gu"},
+        {"kana": "げ", "romaji": "ge"},
+        {"kana": "ご", "romaji": "go"}
     ],
     3: [
+        # Sa-line & Za-line (Dakuten / Ten-Ten)
         {"kana": "さ", "romaji": "sa"},
         {"kana": "し", "romaji": "shi"},
         {"kana": "す", "romaji": "su"},
         {"kana": "せ", "romaji": "se"},
-        {"kana": "そ", "romaji": "so"}
+        {"kana": "そ", "romaji": "so"},
+        {"kana": "ざ", "romaji": "za"},
+        {"kana": "じ", "romaji": "ji"},
+        {"kana": "ず", "romaji": "zu"},
+        {"kana": "ぜ", "romaji": "ze"},
+        {"kana": "ぞ", "romaji": "zo"}
     ],
     4: [
+        # Ta-line & Da-line (Dakuten / Ten-Ten)
         {"kana": "た", "romaji": "ta"},
         {"kana": "ち", "romaji": "chi"},
         {"kana": "つ", "romaji": "tsu"},
         {"kana": "て", "romaji": "te"},
-        {"kana": "と", "romaji": "to"}
+        {"kana": "と", "romaji": "to"},
+        {"kana": "だ", "romaji": "da"},
+        {"kana": "ぢ", "romaji": "di"},
+        {"kana": "づ", "romaji": "du"},
+        {"kana": "で", "romaji": "de"},
+        {"kana": "ど", "romaji": "do"}
     ],
     5: [
+        # Na-line
         {"kana": "な", "romaji": "na"},
         {"kana": "に", "romaji": "ni"},
         {"kana": "ぬ", "romaji": "nu"},
@@ -170,13 +231,25 @@ STAGE_KANA = {
         {"kana": "の", "romaji": "no"}
     ],
     6: [
+        # Ha-line, Ba-line (Dakuten / Ten-Ten) & Pa-line (Handakuten / Maru)
         {"kana": "は", "romaji": "ha"},
         {"kana": "ひ", "romaji": "hi"},
         {"kana": "ふ", "romaji": "fu"},
         {"kana": "へ", "romaji": "he"},
-        {"kana": "ほ", "romaji": "ho"}
+        {"kana": "ほ", "romaji": "ho"},
+        {"kana": "ば", "romaji": "ba"},
+        {"kana": "び", "romaji": "bi"},
+        {"kana": "ぶ", "romaji": "bu"},
+        {"kana": "べ", "romaji": "be"},
+        {"kana": "ぼ", "romaji": "bo"},
+        {"kana": "ぱ", "romaji": "pa"},
+        {"kana": "ぴ", "romaji": "pi"},
+        {"kana": "ぷ", "romaji": "pu"},
+        {"kana": "ぺ", "romaji": "pe"},
+        {"kana": "ぽ", "romaji": "po"}
     ],
     7: [
+        # Ma-line
         {"kana": "ま", "romaji": "ma"},
         {"kana": "み", "romaji": "mi"},
         {"kana": "む", "romaji": "mu"},
@@ -184,6 +257,7 @@ STAGE_KANA = {
         {"kana": "も", "romaji": "mo"}
     ],
     8: [
+        # Ra-line
         {"kana": "ら", "romaji": "ra"},
         {"kana": "り", "romaji": "ri"},
         {"kana": "る", "romaji": "ru"},
@@ -191,6 +265,7 @@ STAGE_KANA = {
         {"kana": "ろ", "romaji": "ro"}
     ],
     9: [
+        # Ya-line, Wa-line & Wo
         {"kana": "や", "romaji": "ya"},
         {"kana": "ゆ", "romaji": "yu"},
         {"kana": "よ", "romaji": "yo"},
@@ -198,14 +273,20 @@ STAGE_KANA = {
         {"kana": "を", "romaji": "wo"}
     ],
     10: [
+        # Grand Championship Mixed Mastery & Dakuten Review
         {"kana": "ん", "romaji": "n"},
         {"kana": "わ", "romaji": "wa"},
         {"kana": "れ", "romaji": "re"},
         {"kana": "ね", "romaji": "ne"},
         {"kana": "る", "romaji": "ru"},
-        {"kana": "ろ", "romaji": "ro"}
+        {"kana": "ろ", "romaji": "ro"},
+        {"kana": "が", "romaji": "ga"},
+        {"kana": "ざ", "romaji": "za"},
+        {"kana": "だ", "romaji": "da"},
+        {"kana": "ば", "romaji": "ba"},
+        {"kana": "ぱ", "romaji": "pa"}
     ],
-    11: ALL_46_HIRAGANA
+    11: ALL_71_HIRAGANA
 }
 
 TRAFFIC_COLORS = ["blue", "green", "yellow", "purple", "cyan", "orange"]
