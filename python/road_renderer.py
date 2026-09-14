@@ -2120,50 +2120,16 @@ class RoadRenderer:
         import time
         now = time.time()
         
-        # 1. Fuji Dawn Sunrise Sky
-        pygame.draw.rect(surface, (18, 24, 46), (GAME_X, 0, GAME_W, scr_h))
-        # Radiant golden dawn horizon
-        horizon_h = int(scr_h * 0.35)
-        for gy in range(horizon_h):
-            t_grad = gy / horizon_h
-            col_r = int(18 + (230 - 18) * t_grad)
-            col_g = int(24 + (140 - 24) * t_grad)
-            col_b = int(46 + (60 - 46) * t_grad)
-            pygame.draw.line(surface, (col_r, col_g, col_b), (GAME_X, gy), (GAME_X + GAME_W, gy))
-            
-        # Mt. Fuji Silhouette on the horizon
-        fuji_cx = GAME_X + GAME_W // 2
-        fuji_top = 45
-        fuji_base = horizon_h + 30
-        fuji_w = 420
-        # Dark volcanic base slopes
-        pts_fuji = [
-            (fuji_cx - fuji_w * 0.5, fuji_base),
-            (fuji_cx - 45, fuji_top),
-            (fuji_cx + 45, fuji_top),
-            (fuji_cx + fuji_w * 0.5, fuji_base)
-        ]
-        pygame.draw.polygon(surface, (28, 36, 64), pts_fuji)
-        # Snow-capped summit
-        pts_snow = [
-            (fuji_cx - 45, fuji_top),
-            (fuji_cx - 85, fuji_top + 45),
-            (fuji_cx - 45, fuji_top + 38),
-            (fuji_cx - 15, fuji_top + 50),
-            (fuji_cx + 20, fuji_top + 40),
-            (fuji_cx + 55, fuji_top + 48),
-            (fuji_cx + 85, fuji_top + 45),
-            (fuji_cx + 45, fuji_top)
-        ]
-        pygame.draw.polygon(surface, (248, 252, 255), pts_snow)
+        # 1. Dark Championship Circuit Base
+        pygame.draw.rect(surface, (18, 24, 32), (GAME_X, 0, GAME_W, scr_h))
         
-        # 2. Championship Manicured Racing Turf across Entire Viewport (below horizon)
-        self.draw_tiled_texture(surface, self.tex_grass, (GAME_X, horizon_h, GAME_W, scr_h - horizon_h))
+        # 2. Championship Manicured Racing Turf across Entire Viewport
+        self.draw_tiled_texture(surface, self.tex_grass, (GAME_X, 0, GAME_W, scr_h))
         
         # Manicured emerald race verge overlay across entire terrain
-        turf_overlay = pygame.Surface((int(GAME_W), scr_h - horizon_h), pygame.SRCALPHA)
+        turf_overlay = pygame.Surface((int(GAME_W), scr_h), pygame.SRCALPHA)
         turf_overlay.fill((20, 75, 35, 75))
-        surface.blit(turf_overlay, (GAME_X, horizon_h))
+        surface.blit(turf_overlay, (GAME_X, 0))
 
         # 3. Circuit Grandstands & Cheering Spectators
         for stand in self.stage10_grandstands:
